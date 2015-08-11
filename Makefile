@@ -1,34 +1,47 @@
-#LDFLAGS=`root-config --libs`
-#CPPFLAGS= -Wall -Wno-long-long  -pthread -DCTHREAD_POSIX -D_THREAD_SAFE -D_REENTRANT -I$(ROOTSYS)/include 
+CPPFLAGS := -g -I. $(shell root-config --cflags)
+CXXFLAGS := -Wall -Wextra -ggdb3 -O9 -march=native -mfpmath=sse -msse3 -ftree-vectorize -pipe -DNDEBUG
+LDFLAGS := $(CXXFLAGS) `root-config --glibs`
 
-CPPFLAGS=`root-config --cflags` -g
-#-IRooUnfold-1.1.1/src/   
-#If running in CMSSW42...
-#LDFLAGS = -L$(ROOTSYS)/lib -lNew -lRint -lTree -lTreePlayer -lCint -lThread -lGraf -lGraf3d -lHist -lHtml -lMatrix -lMinuit -lPostscript -lProof -lThread -lCore -lGX11 -lPhysics -lGpad -lGui -lTreeViewer -L/usr/X11R6/lib -lm -ldl -L/usr/lib -lpthread -rdynamic 
+SUFFIXES := .o .cc .cpp
 
-#if running in CMSSW53...
-LDFLAGS =$(shell root-config --libs) 
-#RooUnfold-1.1.1/libRooUnfold.so
+EXES := $(basename $(wildcard *.cpp))
+SRCS := $(wildcard *.cc) $(wildcard *.cpp)
+OBJS := $(patsubst %.cc, %.o, $(patsubst %.cpp, %.o, $(SRCS)))
+DEPS := $(OBJS:.o=.P)
+
+define cxx_compile_with_dependency_creation
+	$(COMPILE.cc) -MD -o $@ $<
+	@sed -e 's|.*:|$*.o:|' <$*.d >$*.P
+	@sed -e 's/.*://' -e 's/\\$$//' <$*.d | fmt -1 | \
+	  sed -e 's/^ *//' -e 's/$$/:/' >>$*.P
+	@rm -f $*.d
+endef
+
+define cxx_link_rule
+	$(CXX) $^ $(LDFLAGS) $(LOADLIBES) $(LDLIBS) -o $@
+endef
+
+%.o: %.cc
+	$(call cxx_compile_with_dependency_creation)
+        
+%.o: %.cpp
+	$(call cxx_compile_with_dependency_creation)
+
+%: %.o
+	$(call cxx_link_rule)
+
+%.Dict.cc %.Dict.h: %.h %.LinkDef.h
+	$(ROOTSYS)/bin/rootcint -f $@ -c -I. $^
 
 
-# FOR DATA
-#MYCCOPT=-D DATA
-#FOR OLDMC
-#MYCCOPT2=-M OLDMC
-# FOR mc
- MYCCOPT=
 
+#all: $(EXES)
 
-#wzDoGenAnalysisNewAutomatic1: wzDoGenAnalysisNewAutomatic1.C wzTools2.C WZ.C WZEvent.C
-#	g++ $(CPPFLAGS) $(LDFLAGS) -o $@ $^
-
-wzAnalysis: wzAnalysis.C WZEvent.C EventTree.C
-	g++ -D DATA $(CPPFLAGS) $(LDFLAGS) -o $@ $^
-
-
-#wzMCUnfoldingAnalysis: wzMCUnfoldingAnalysis.C wzToolsNew.C WZGenEvent_v140710.C WZGenEvent.C WZEvent.C UnfoldingAnalysis.C WZAnalysis.C UnfoldingAnalysis.h UnfoldingHistogramFactory.C JetEnergyTool.C SystematicsManager.C MetSystematicsTool.C metsys.C
-#	g++ -D NEWMCPUFIX $(CPPFLAGS) $(LDFLAGS) -o $@ $^
+wzAnalysis: wzAnalysis.o WZEvent.o EventTree.o
 
 
 
+clean:
+	- $(RM) *.o *.Dict.cc *.Dict.h $(addsuffix .o, $(EXES)) Dependencies.make $(EXES) *.P
 
+-include $(DEPS)
