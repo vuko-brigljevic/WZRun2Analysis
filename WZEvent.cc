@@ -14,18 +14,14 @@
 
 WZEvent::WZEvent(TTree * tree) :
   WZBASECLASS(tree)
-  //
 {
-
   // Set static pointer to Lepton class
   Lepton::SetWZEvent(this);
-
-  
 }
 
 
-void WZEvent::Cleanup() {
-
+void WZEvent::Cleanup()
+{
   final_state     = undefined;
   selection_level = selectionNotRun;
 
@@ -36,6 +32,11 @@ void WZEvent::Cleanup() {
     it = leptons.erase(it);
   }
 
+  for (vector<Lepton*>::const_iterator lIt = leptonsNew.begin(), end = leptonsNew.end();
+       lIt != end; ++lIt) {
+    delete *lIt;
+    lIt = leptonsNew.erase(lIt);
+  }
 }
 
 void WZEvent::ReadEvent()
@@ -43,9 +44,7 @@ void WZEvent::ReadEvent()
 
   Cleanup();
 
-
-  //  selection_level = failsSelection;
-
+  selection_level = selectionNotRun;
 
   // Electrons
   for (unsigned int iele=0; iele < eleCharge->size(); iele++) {
@@ -66,27 +65,91 @@ void WZEvent::ReadEvent()
      			    (*muPhi)[imu],
      			    (*muCharge)[imu]));
   }
+
+  // Electrons - Sasa
+  if (nEle != eleCharge->size()) {
+    std::cout << "nEle != vector<ele>.size() !!!" << std::endl;
+  } else {
+    for (int inE = 0; inE < nEle; inE++) {
+      Electron* ele = new Electron(inE, elePt->at(inE), eleEta->at(inE),
+                                   elePhi->at(inE), eleCharge->at(inE));
+      leptonsNew.push_back(ele);
+    }
+  }
+
+  // Muons - Sasa
+  if (nMu != muCharge->size()) {
+    std::cout << "nMu != vector<ele>.size() !!!" << std::endl;
+  } else {
+    for (int inMu = 0; inMu < nMu; inMu++) {
+      Muon* mu = new Muon(inMu, muPt->at(inMu), muEta->at(inMu), muPhi->at(inMu), muCharge->at(inMu));
+      leptonsNew.push_back(mu);
+    }
+  }
+
 }
-
-
-
-
 
 
 bool WZEvent::passesSelection()
 {
   bool passed = false;
 
+  if (nEle + nMu < 3) {
+    selection_level = failsThreeLeptonFilter;
+    return passed;
+  }
+
+//  HLT triggers part missing
+
+
+// Preselection
+
+  std::vector<unsigned int> indexTightLeptons;
+  nEleTightTwiki = 0;
+  nMuTightTwiki = 0;
+
+  std::vector<Lepton*>::iterator lIt;
+  unsigned int i;
+  for (lIt = leptonsNew.begin(), i = 0; lIt != leptonsNew.end(); ++lIt, i++) {
+    if ((*lIt)->IsTightTwiki()) {
+//      index = std::distance(leptonsNew.begin(), lIt);
+      indexTightLeptons.push_back(i);
+      if ((*lIt)->PdgId() == 11) {
+        nEleTightTwiki++;
+      }
+      else if ((*lIt)->PdgId() == 13) {
+        nMuTightTwiki++;
+      }
+    }
+  }
+
+  if (nMuTightTwiki + nEleTightTwiki != indexTightLeptons.size()) {
+    std::cout << "ERROR: nTight != vector<index>.size() !!!" << std::endl;
+    return passed;
+  }
+
+  if (nMuTightTwiki + nEleTightTwiki == indexTightLeptons.size() &&
+      nMuTightTwiki + nEleTightTwiki == 3) {
+    selection_level = passesPreselection;
+    if (nMuTightTwiki == 0 && nEleTightTwiki == 3) {
+      final_state = eee;
+    }
+    if (nMuTightTwiki == 1 && nEleTightTwiki == 2) {
+      final_state = eem;
+    }
+    if (nMuTightTwiki == 2 && nEleTightTwiki == 1) {
+      final_state = mme;
+    }
+    if (nMuTightTwiki == 3 && nEleTightTwiki == 0) {
+      final_state = mmm;
+    }
+  }
+  
   // Do we have a Z decay ? 
 
   // Do we have a W candidate
 
   // MET cut
-
-  if ( (nEle + nMu) == 3)
-    passed = true;
-
-  return passed;
   
 }
 
