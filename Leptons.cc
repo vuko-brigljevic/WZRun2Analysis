@@ -35,11 +35,28 @@ Electron::Electron(int ind, double pt, double eta, double phi,
 
 bool Electron::IsTight() {
 
-  if (wztree == 0 ) std::cout << "WZEvent pointer is ZERO!!!! \n";
+  if (wztree == 0 ) {
+    std::cout << "WZEvent pointer is ZERO!!!! \n";
+    return false;
+  }
 
-  return true;
+  bool passesTight = false;
+  bool passesPtEtaCuts = false;
+  
+  if ( (*(wztree->eleIDbit))[index] == 2 ) {
+    passesTight = true;
+  }
+  
+  if ( (*(wztree->elePt))[index] > 10 && (*(wztree->eleEta))[index] < 2.5 ) {
+    passesPtEtaCuts = true;
+  }
 
-
+  if ( passesTight && passesPtEtaCuts) {
+    return true;
+  }
+  else {
+    return false;
+  }
 }
 
 
@@ -52,12 +69,13 @@ Muon::Muon(int ind, double pt, double eta, double phi,
 
 bool Muon::IsTight() {
 
-  if (wztree == 0 ){ 
+  if (wztree == 0 ) { 
     std::cout << "WZEvent pointer is ZERO!!!! \n";
     return false;
   }
 
   bool passesTight      = false;
+  bool passesPtEtaCuts = false;
   bool passesIsolation  = false;
 
   if ( (*(wztree->muChi2NDF))[index] < 10 
@@ -72,6 +90,11 @@ bool Muon::IsTight() {
 
   }
 
+  if ( (*(wztree->muPt))[index] > 10 && (*(wztree->muEta))[index] < 2.4 ) {
+    passesPtEtaCuts = true;
+  }
+
+
   // From UW Twiki
   // (mu.chargedHadronIso()
   // +max(mu.photonIso()+mu.neutralHadronIso()
@@ -84,7 +107,7 @@ bool Muon::IsTight() {
     passesIsolation = true;
   }
 
-  if (passesTight && passesIsolation) { 
+  if (passesTight && passesPtEtaCuts && passesIsolation) { 
     return true; 
   } else {
     return false;

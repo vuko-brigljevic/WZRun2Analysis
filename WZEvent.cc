@@ -66,9 +66,6 @@ void WZEvent::ReadEvent()
      			    (*muPhi)[imu],
      			    (*muCharge)[imu]));
   }
-
-
-
 }
 
 
@@ -76,8 +73,8 @@ void WZEvent::ReadEvent()
 
 
 
-bool WZEvent::passesSelection(){
-
+bool WZEvent::passesSelection()
+{
   bool passed = false;
 
   // Do we have a Z decay ? 
@@ -94,25 +91,24 @@ bool WZEvent::passesSelection(){
 }
 
 
-bool WZEvent::passesFullSelection(){
-
-
+bool WZEvent::passesFullSelection()
+{
   std::vector<int> tightLeptons;
 
   // Do we have exactly 3 tight leptons
   for (unsigned int ilep=0; ilep < leptons.size(); ilep++ ) {
-    
-    if (leptons[ilep]->IsTight()) tightLeptons.push_back(ilep);
-
+    if (leptons[ilep]->IsTight())
+      tightLeptons.push_back(ilep);
   }
 
-  if (tightLeptons.size() != 3) return false;
+  if (tightLeptons.size() != 3)
+    return false;
 
 
   // Look for Z candidates
 
-  int izlep1=-1;
-  int izlep2=-1;
+  int izlep1 = -1;
+  int izlep2 = -1;
   int iwlep = -1;
 
   float dzmin = 1000.;
@@ -129,14 +125,15 @@ bool WZEvent::passesFullSelection(){
       int ilep1 = tightLeptons[id1];
       int ilep2 = tightLeptons[id2];
 
-      if ( abs(leptons[ilep1]->PdgId()) != abs(leptons[ilep2]->PdgId()) ) continue;
+      if ( abs(leptons[ilep1]->PdgId()) != abs(leptons[ilep2]->PdgId()) )
+        continue;
 
       float mcand = (*(leptons[ilep1]) + *(leptons[ilep2])).M();
       std::cout << "Z candidate mass = " << mcand << std::endl;
       if (fabs(mcand - 91.11) < dzmin ) {
-	dzmin = fabs(mcand - 91.11);
-	izlep1 = ilep1;
-	izlep2 = ilep2;
+      	dzmin = fabs(mcand - 91.11);
+      	izlep1 = ilep1;
+      	izlep2 = ilep2;
       }
     }
   }
@@ -148,15 +145,15 @@ bool WZEvent::passesFullSelection(){
   // Third lepton 
 
 
-  if (izlep1<0 || izlep2 < 0 || iwlep < 0) return false;
+  if (izlep1 < 0 || izlep2 < 0 || iwlep < 0)
+    return false;
 
   // DR cut between Z and W leptons
 
   bool passesDRCut = false;
 
-  if (  (*(leptons[izlep1])).DeltaR( (*(leptons[iwlep]))) < 0.1
-	&&  (*(leptons[izlep2])).DeltaR( (*(leptons[iwlep]))) < 0.1 ) {
-
+  if ( (*(leptons[izlep1])).DeltaR( (*(leptons[iwlep]))) < 0.1
+       &&  (*(leptons[izlep2])).DeltaR( (*(leptons[iwlep]))) < 0.1 ) {
     passesDRCut = true;
   } 
 
@@ -166,16 +163,13 @@ bool WZEvent::passesFullSelection(){
 
   // Which final state is it
 
-  if (leptons[izlep1]->PdgId() == 11 && leptons[iwlep]->PdgId() == 11 )
+  if ( leptons[izlep1]->PdgId() == 11 && leptons[iwlep]->PdgId() == 11 )
     final_state = eee;
-  if (leptons[izlep1]->PdgId() == 11 && leptons[iwlep]->PdgId() == 13 )
+  if ( leptons[izlep1]->PdgId() == 11 && leptons[iwlep]->PdgId() == 13 )
     final_state = eem;
-  if (leptons[izlep1]->PdgId() == 13 && leptons[iwlep]->PdgId() == 11 )
+  if ( leptons[izlep1]->PdgId() == 13 && leptons[iwlep]->PdgId() == 11 )
     final_state = mme;
-  if (leptons[izlep1]->PdgId() == 13 && leptons[iwlep]->PdgId() == 11 )
+  if ( leptons[izlep1]->PdgId() == 13 && leptons[iwlep]->PdgId() == 11 )
     final_state = mmm;
 
-
 }
-
-
