@@ -48,7 +48,7 @@ void WZEvent::ReadEvent()
 
 
   // Electrons
-  for (int iele=0; iele<eleCharge->size(); iele++) {
+  for (unsigned int iele=0; iele < eleCharge->size(); iele++) {
     Electron* ele = new Electron(iele,
 				 (*elePt)[iele],
 				 (*eleEta)[iele],
@@ -59,7 +59,7 @@ void WZEvent::ReadEvent()
   }
 
   // Muons
-  for (int imu=0; imu<muCharge->size(); imu++) {
+  for (unsigned int imu=0; imu < muCharge->size(); imu++) {
     leptons.push_back( new Muon(imu,
      			    (*muPt)[imu],
      			    (*muEta)[imu],
@@ -100,7 +100,7 @@ bool WZEvent::passesFullSelection(){
   std::vector<int> tightLeptons;
 
   // Do we have exactly 3 tight leptons
-  for (int ilep=0; ilep<leptons.size(); ilep++ ) {
+  for (unsigned int ilep=0; ilep < leptons.size(); ilep++ ) {
     
     if (leptons[ilep]->IsTight()) tightLeptons.push_back(ilep);
 
@@ -123,11 +123,11 @@ bool WZEvent::passesFullSelection(){
 
 
 
-  for (int id1=0; id1<tightLeptons.size(); id1++ ) {
-    for (int id2=id1+1; id2<tightLeptons.size(); id2++ ) {
+  for (unsigned int id1=0; id1 < tightLeptons.size(); id1++ ) {
+    for (unsigned int id2=id1+1; id2 < tightLeptons.size(); id2++ ) {
       // Same flavor, opposite charge
-      ilep1 = tightLeptons[id1];
-      ilep2 = tightLeptons[id2];
+      int ilep1 = tightLeptons[id1];
+      int ilep2 = tightLeptons[id2];
 
       if ( abs(leptons[ilep1]->PdgId()) != abs(leptons[ilep2]->PdgId()) ) continue;
 
@@ -166,14 +166,14 @@ bool WZEvent::passesFullSelection(){
 
   // Which final state is it
 
-  if (leptons[izlep1]->pdgId() == 11 && leptons[iwlep]->pdgId() == 11 ) 
+  if (leptons[izlep1]->PdgId() == 11 && leptons[iwlep]->PdgId() == 11 )
     final_state = eee;
-  if (leptons[izlep1]->pdgId() == 11 && leptons[iwlep]->pdgId() == 13 ) 
-    final_state = eemu;
-  if (leptons[izlep1]->pdgId() == 11 && leptons[iwlep]->pdgId() == 11 ) 
-    final_state = eee;
-  if (leptons[izlep1]->pdgId() == 11 && leptons[iwlep]->pdgId() == 11 ) 
-    final_state = eee;
+  if (leptons[izlep1]->PdgId() == 11 && leptons[iwlep]->PdgId() == 13 )
+    final_state = eem;
+  if (leptons[izlep1]->PdgId() == 13 && leptons[iwlep]->PdgId() == 11 )
+    final_state = mme;
+  if (leptons[izlep1]->PdgId() == 13 && leptons[iwlep]->PdgId() == 11 )
+    final_state = mmm;
 
 
 }
