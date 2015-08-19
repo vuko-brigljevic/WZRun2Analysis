@@ -1,22 +1,18 @@
 #include "Leptons.h"
-
 #include "WZEvent.h"
-
 #include "TMath.h"
-
 #include <iostream>
 
 
 // Initialize static members
-WZEvent * Lepton::wztree = 0;
+WZEvent* Lepton::wztree = 0;
 
 
-void Lepton::SetWZEvent(WZEvent * wzt) {
+void Lepton::SetWZEvent(WZEvent* wzt) {
   wztree = wzt;
 }
 
-Lepton::Lepton(int ind, double pt, double eta, double phi,
-	       float ch ) 
+Lepton::Lepton(int ind, double pt, double eta, double phi, float ch) 
 {
     SetPtEtaPhiM(pt, eta, phi, 0.);
     charge   = ch;
@@ -24,11 +20,8 @@ Lepton::Lepton(int ind, double pt, double eta, double phi,
 }
 
 
-
-
-Electron::Electron(int ind, double pt, double eta, double phi,
-		   float ch )
-  : Lepton(ind,pt,eta,phi,ch)
+Electron::Electron(int ind, double pt, double eta, double phi, float ch)
+  : Lepton(ind, pt, eta, phi, ch)
 {
   pdgid = 11;
 }
@@ -43,15 +36,15 @@ bool Electron::IsTight() {
   bool passesTight = false;
   bool passesPtEtaCuts = false;
   
-  if ( (*(wztree->eleIDbit))[index] == 2 ) {
+  if ( (wztree->eleIDbit)->at(index) == 2 ) {
     passesTight = true;
   }
   
-  if ( (*(wztree->elePt))[index] > 10 && (*(wztree->eleEta))[index] < 2.5 ) {
+  if ( (wztree->elePt)->at(index) > 10 && (wztree->eleEta)->at(index) < 2.5 ) {
     passesPtEtaCuts = true;
   }
 
-  if ( passesTight && passesPtEtaCuts) {
+  if ( passesTight && passesPtEtaCuts ) {
     return true;
   }
   else {
@@ -60,9 +53,8 @@ bool Electron::IsTight() {
 }
 
 
-Muon::Muon(int ind, double pt, double eta, double phi,
-	   float ch )
-  : Lepton(ind,pt,eta,phi,ch)
+Muon::Muon(int ind, double pt, double eta, double phi, float ch)
+  : Lepton(ind, pt, eta, phi, ch)
 {
   pdgid = 13;
 }
