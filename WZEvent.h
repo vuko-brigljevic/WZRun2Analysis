@@ -4,6 +4,9 @@
 
 // #include "GGTree.h"
 #include "EventTree.h"
+#include "Leptons.h"
+
+
 
 #define WZBASECLASS EventTree
 
@@ -37,26 +40,6 @@ enum PassedSelectionStep { selectionNotRun,
 		  
 
 
-class RecoLepton : public TLorentzVector {
-
-public:
-
-  RecoLepton(double pt, double eta, double phi,
-	     float ch, float id ) {
-    SetPtEtaPhiM(pt, eta, phi, 0.);
-    charge = ch;
-    pdgid  = id;
-  };
-
-  float PdgId() { return pdgid;};
-
-protected:
-  float pdgid;
-  float charge;
-
-};
-
-
 
 class WZEvent : public WZBASECLASS
 {
@@ -64,6 +47,8 @@ public:
   WZEvent(TTree *tree);
 
   bool passesSelection();
+
+  bool passesFullSelection();
 
   void ReadEvent();
 
@@ -73,6 +58,8 @@ public:
 
 protected:
 
+  void Cleanup();
+
   // For various smearing functions
 
   TRandom3 *random;
@@ -80,6 +67,8 @@ protected:
   FinalState final_state;
   PassedSelectionStep  selection_level;
   
+
+  std::vector<Lepton* > leptons;
 
 
 };
