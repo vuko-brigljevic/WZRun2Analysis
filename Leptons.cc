@@ -34,17 +34,17 @@ bool Electron::IsTight() {
   }
 
   bool passesTight = false;
-  bool passesPtEtaCuts = false;
+//  bool passesPtEtaCuts = false;
   
   if ( (wztree->eleIDbit)->at(index) == 2 ) {
     passesTight = true;
   }
   
-  if ( (wztree->elePt)->at(index) > 10 && (wztree->eleEta)->at(index) < 2.5 ) {
-    passesPtEtaCuts = true;
-  }
+//  if ( (wztree->elePt)->at(index) > 10 && (wztree->eleEta)->at(index) < 2.5 ) {
+//    passesPtEtaCuts = true;
+//  }
 
-  if ( passesTight && passesPtEtaCuts ) {
+  if ( passesTight ) {
     return true;
   }
   else {
@@ -67,24 +67,20 @@ bool Muon::IsTight() {
   }
 
   bool passesTight      = false;
-  bool passesPtEtaCuts = false;
+//  bool passesPtEtaCuts = false;
   bool passesIsolation  = false;
 
-  if ( (*(wztree->muChi2NDF))[index] < 10 
-       && (*(wztree->muMuonHits))[index] > 0 
-       && (*(wztree->muStations))[index] > 1 
-       && (*(wztree->muD0))[index] < 0.2
-       && (*(wztree->muDz))[index] < 0.5
-       && (*(wztree->muPixelHits))[index] > 0
-       && (*(wztree->muTrkLayers))[index] > 5 ) {
+  if ( (wztree->muChi2NDF)->at(index) < 10 && (wztree->muMuonHits)->at(index) > 0 &&
+       (wztree->muStations)->at(index) > 1 && (wztree->muD0)->at(index) < 0.2 &&
+       (wztree->muDz)->at(index) < 0.5 && (wztree->muPixelHits)->at(index) > 0 &&
+       (wztree->muTrkLayers)->at(index) > 5 ) {
 
     passesTight = true;
-
   }
 
-  if ( (*(wztree->muPt))[index] > 10 && (*(wztree->muEta))[index] < 2.4 ) {
-    passesPtEtaCuts = true;
-  }
+//  if ( (wztree->muPt)->at(index) > 10 && (wztree->muEta)->at(index) < 2.4 ) {
+//    passesPtEtaCuts = true;
+//  }
 
 
   // From UW Twiki
@@ -92,14 +88,13 @@ bool Muon::IsTight() {
   // +max(mu.photonIso()+mu.neutralHadronIso()
   //       -0.5*mu.puChargedHadronIso,0.0))/mu.pt()
 
-  if ( ( (*(wztree->muPFChIso))[index] + 
-	 TMath::Max( (*(wztree->muPFPhoIso))[index] + (*(wztree->muPFNeuIso))[index] 
-	      - 0.5 *  (*(wztree->muPFPUIso))[index] , 0.) ) 
-       / Pt() < 0.12 ) {
+  if ( ((wztree->muPFChIso)->at(index) +
+        TMath::Max((wztree->muPFPhoIso)->at(index) + (wztree->muPFNeuIso)->at(index) -
+                   0.5 * (wztree->muPFPUIso)->at(index) , 0.)) / Pt() < 0.12 ) {
     passesIsolation = true;
   }
 
-  if (passesTight && passesPtEtaCuts && passesIsolation) { 
+  if (passesTight && passesIsolation) { 
     return true; 
   } else {
     return false;
