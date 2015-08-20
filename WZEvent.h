@@ -39,12 +39,10 @@ public:
   WZEvent(TTree *tree);
 
   bool passesSelection();
-  FinalState GetFinalState() { return final_state; };
+  FinalState GetFinalState() { return final_state; }
   PassedSelectionStep GetSelectionLevel() { return selection_level; };
 
   bool passesFullSelection();
-
-  FinalState GetFinalState() { return final_state;}
 
   void ReadEvent();
 
