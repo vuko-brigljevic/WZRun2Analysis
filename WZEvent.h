@@ -20,28 +20,27 @@ enum FinalState { undefined,
                   eee,
                   eem,
                   mme,
-                  mmm};
+                  mmm };
 
 
 enum PassedSelectionStep { selectionNotRun,
                            failsThreeLeptonFilter,
+                           passesThreeLeptonFilter,
                            passesPreselection,
-                           
-			   failsSelection,
-			   passesZSelection,
-			   passesWSelection,
-			   passesFullSelection};
+                           passesZSelection,
+                           passesWSelection,
+                           passesFullSelection};
 
 
 class WZEvent : public WZBASECLASS
 {
 public:
-  WZEvent(TTree *tree);
+  WZEvent(TTree* tree);
 
   bool passesSelection();
+
   FinalState GetFinalState() { return final_state; }
   PassedSelectionStep GetSelectionLevel() { return selection_level; };
-
   bool passesFullSelection();
 
   void ReadEvent();
@@ -49,6 +48,9 @@ public:
   static TH1F* hScaleInEB;
   static TH1F* hScaleOutEB;
   static TH1F* hScaleEE;
+
+  unsigned int nZCand;
+  std::vector<double> massZCand;
 
 protected:
 

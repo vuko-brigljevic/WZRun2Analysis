@@ -35,7 +35,7 @@ endef
 
 
 
-#all: $(EXES)
+all: $(EXES)
 
 wzAnalysis: wzAnalysis.o WZEvent.o EventTree.o Leptons.o GenericAnalysis.o WZSelectionAnalysis.o
 
