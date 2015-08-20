@@ -24,7 +24,7 @@ enum FinalState { undefined,
 
 
 enum PassedSelectionStep { selectionNotRun,
-                           failsThreeLeptonFilter,
+                           passesThreeLeptonFilter,
                            passesPreselection,
                            
 			   failsSelection,

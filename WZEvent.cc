@@ -32,8 +32,7 @@ void WZEvent::Cleanup()
     it = leptons.erase(it);
   }
 
-  for (vector<Lepton*>::const_iterator lIt = leptonsNew.begin(), end = leptonsNew.end();
-       lIt != end; ++lIt) {
+  for (vector<Lepton*>::iterator lIt = leptonsNew.begin(); lIt != leptonsNew.end(); ) {
     delete *lIt;
     lIt = leptonsNew.erase(lIt);
   }
@@ -45,9 +44,10 @@ void WZEvent::ReadEvent()
   Cleanup();
 
   selection_level = selectionNotRun;
+  final_state = undefined;
 
   // Electrons
-  for (unsigned int iele=0; iele < eleCharge->size(); iele++) {
+  for (unsigned int iele = 0; iele < eleCharge->size(); iele++) {
     Electron* ele = new Electron(iele,
 				 (*elePt)[iele],
 				 (*eleEta)[iele],
@@ -58,7 +58,7 @@ void WZEvent::ReadEvent()
   }
 
   // Muons
-  for (unsigned int imu=0; imu < muCharge->size(); imu++) {
+  for (unsigned int imu = 0; imu < muCharge->size(); imu++) {
     leptons.push_back( new Muon(imu,
      			    (*muPt)[imu],
      			    (*muEta)[imu],
@@ -67,8 +67,9 @@ void WZEvent::ReadEvent()
   }
 
   // Electrons - Sasa
-  if (nEle != eleCharge->size()) {
-    std::cout << "nEle != vector<ele>.size() !!!" << std::endl;
+  unsigned int nE = nEle;
+  if (nE != eleCharge->size()) {
+    std::cout << "nEle != vector<Ele>.size() !!!" << std::endl;
   } else {
     for (int inE = 0; inE < nEle; inE++) {
       Electron* ele = new Electron(inE, elePt->at(inE), eleEta->at(inE),
@@ -78,8 +79,9 @@ void WZEvent::ReadEvent()
   }
 
   // Muons - Sasa
-  if (nMu != muCharge->size()) {
-    std::cout << "nMu != vector<ele>.size() !!!" << std::endl;
+  unsigned int nM = nMu;
+  if (nM != muCharge->size()) {
+    std::cout << "nMu != vector<Mu>.size() !!!" << std::endl;
   } else {
     for (int inMu = 0; inMu < nMu; inMu++) {
       Muon* mu = new Muon(inMu, muPt->at(inMu), muEta->at(inMu), muPhi->at(inMu), muCharge->at(inMu));
@@ -94,8 +96,10 @@ bool WZEvent::passesSelection()
 {
   bool passed = false;
 
-  if (nEle + nMu < 3) {
-    selection_level = failsThreeLeptonFilter;
+  if (!(nEle + nMu < 3)) {
+    selection_level = passesThreeLeptonFilter;
+  } else {
+    selection_level = selectionNotRun;
     return passed;
   }
 
@@ -124,7 +128,7 @@ bool WZEvent::passesSelection()
   }
 
   if (nMuTightTwiki + nEleTightTwiki != indexTightLeptons.size()) {
-    std::cout << "ERROR: nTight != vector<index>.size() !!!" << std::endl;
+    std::cout << "ERROR: nTight != vector<indexTight>.size() !!!" << std::endl;
     return passed;
   }
 
@@ -143,14 +147,24 @@ bool WZEvent::passesSelection()
     if (nMuTightTwiki == 3 && nEleTightTwiki == 0) {
       final_state = mmm;
     }
+  } else {
+    return passed;
   }
   
-  // Do we have a Z decay ? 
+  // Z Selection
+
+
+
+
+
+
+
+
 
   // Do we have a W candidate
 
   // MET cut
-  
+  return passed;
 }
 
 

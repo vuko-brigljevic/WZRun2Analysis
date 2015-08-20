@@ -63,7 +63,7 @@ bool Electron::IsTightTwiki()
   bool passesTight = false;
   bool passesPtEtaCuts = false;
   
-  if ( (wztree->eleIDbit)->at(index) == 2 ) {
+  if ( ((wztree->eleIDbit)->at(index))>>2&1 ) {
     passesTight = true;
   }
   
