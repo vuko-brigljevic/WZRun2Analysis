@@ -13,6 +13,8 @@
 // Replace this with the new tree
 #include "WZEvent.h"
 
+#include "WZSelectionAnalysis.h"
+
 //#include "WZ.h"
 //#include "WZ2012Data.h"
 
@@ -95,9 +97,6 @@ int main(int argc, char **argv)
   TH1F * hNele             = new TH1F ("hNele","Nr of electrons",15,-0.5,14.5);
   TH1F * hNmu              = new TH1F ("hNmu","Nr of muons",15,-0.5,14.5);
 
-  TH1F * hElePt            = new TH1F ("hElePt","Electron Pt",100,0.,100.);
-
-
 //  TH1D * hZmassMu1         = new TH1D ("hZmassMu1", "hZmassMu1", 100, 60, 120);  
 //  TH1D * hZmassEl1         = new TH1D ("hZmassEl1", "hZmassEl1", 100, 60, 120);  
 
@@ -136,6 +135,8 @@ int main(int argc, char **argv)
   //  WZAnalysis   genAnalysis(cWZ);
   //  genAnalysis.Init();
 
+  WZSelectionAnalysis * myAnalysis = new WZSelectionAnalysis(cWZ,fout);
+  myAnalysis->Init();
 
   int nselected = 0;
 
@@ -145,7 +146,7 @@ int main(int argc, char **argv)
   // 
   int nevents=0;
 
-  for  (Int_t k = 0; k<events && k<50000;k++) {
+  for  (Int_t k = 0; k<events ;k++) {
   //  for  (Int_t k = 0; k<events; k++) {
 
     nevents++;
@@ -158,15 +159,8 @@ int main(int argc, char **argv)
     hMet->Fill(cWZ->pfMET);
     hNele->Fill(cWZ->nEle);
     hNmu->Fill(cWZ->nMu);
-    for (unsigned int iele=0; iele < cWZ->elePt->size(); iele++) {
 
-      float pt = (*cWZ->elePt)[iele];
-      hElePt->Fill(pt);
-
-
-      if (cWZ->passesSelection()) nselected++;
-
-    }
+    myAnalysis->EventAnalysis();
 
 
   }
@@ -174,13 +168,15 @@ int main(int argc, char **argv)
   std::cout << "Events : " << nevents
 	    << "\t Total Selected = " << nselected << std::endl;
 
+
+  myAnalysis->Finish();
+
   fout->cd();
   hMet->Write();
 
   hMet->Write();
   hNele->Write();
   hNmu->Write();
-  hElePt->Write();
 
   fout->Close();
 }

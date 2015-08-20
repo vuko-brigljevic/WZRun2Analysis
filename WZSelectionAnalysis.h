@@ -19,7 +19,10 @@ public:
 
 protected:
 
+  int nrAnalyzedEvents;
+
   float yieldsByChannel[4];
+  std::ofstream eventLists[4];
 
 
 };

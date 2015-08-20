@@ -40,7 +40,7 @@ bool Electron::IsTight() {
     passesTight = true;
   }
   
-  if ( Eta() < 2.5 ) {
+  if ( fabs(Eta()) < 2.5 ) {
     passesEtaCut = true;
   }
 
@@ -105,7 +105,7 @@ bool Muon::IsTight() {
     passesTight = true;
   }
 
-  if ( Eta() < 2.4 ) {
+  if ( fabs(Eta()) < 2.4 ) {
     passesEtaCut = true;
   }
 

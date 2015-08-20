@@ -15,6 +15,8 @@
 
 #include <vector>
 
+#include <iostream>
+
 
 enum FinalState { undefined,
                   eee,
@@ -45,6 +47,8 @@ public:
 
   void ReadEvent();
 
+  void DumpEvent(std::ostream & out, int verbosity=0);
+
   static TH1F* hScaleInEB;
   static TH1F* hScaleOutEB;
   static TH1F* hScaleEE;
@@ -67,6 +71,10 @@ protected:
   std::vector<Lepton*> leptonsNew;
   unsigned int nEleTightTwiki;
   unsigned int nMuTightTwiki;
+
+  int zLeptonsIndex[2];
+  int wLeptonIndex;
+
 };
 
 
