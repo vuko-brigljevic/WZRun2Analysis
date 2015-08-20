@@ -34,17 +34,17 @@ bool Electron::IsTight() {
   }
 
   bool passesTight = false;
-//  bool passesPtEtaCuts = false;
+  bool passesEtaCut = false;
   
-  if ( (wztree->eleIDbit)->at(index) == 2 ) {
+  if ( ((wztree->eleIDbit)->at(index))>>2&1 ) {
     passesTight = true;
   }
   
-//  if ( (wztree->elePt)->at(index) > 10 && (wztree->eleEta)->at(index) < 2.5 ) {
-//    passesPtEtaCuts = true;
-//  }
+  if ( Eta() < 2.5 ) {
+    passesEtaCut = true;
+  }
 
-  if ( passesTight ) {
+  if ( passesTight && passesEtaCut ) {
     return true;
   }
   else {
@@ -63,7 +63,7 @@ bool Electron::IsTightTwiki()
   bool passesTight = false;
   bool passesPtEtaCuts = false;
   
-  if ( ((wztree->eleIDbit)->at(index))>>2&1 ) {
+  if (((wztree->eleIDbit)->at(index))>>2&1) {
     passesTight = true;
   }
   
@@ -88,13 +88,13 @@ Muon::Muon(int ind, double pt, double eta, double phi, float ch)
 
 bool Muon::IsTight() {
 
-  if (wztree == 0 ) { 
+  if ( wztree == 0 ) { 
     std::cout << "WZEvent pointer is ZERO!!!! \n";
     return false;
   }
 
   bool passesTight      = false;
-//  bool passesPtEtaCuts = false;
+  bool passesEtaCut = false;
   bool passesIsolation  = false;
 
   if ( (wztree->muChi2NDF)->at(index) < 10 && (wztree->muMuonHits)->at(index) > 0 &&
@@ -105,9 +105,9 @@ bool Muon::IsTight() {
     passesTight = true;
   }
 
-//  if ( (wztree->muPt)->at(index) > 10 && (wztree->muEta)->at(index) < 2.4 ) {
-//    passesPtEtaCuts = true;
-//  }
+  if ( Eta() < 2.4 ) {
+    passesEtaCut = true;
+  }
 
 
   // From UW Twiki
@@ -121,7 +121,7 @@ bool Muon::IsTight() {
     passesIsolation = true;
   }
 
-  if (passesTight && passesIsolation) { 
+  if ( passesTight && passesEtaCut && passesIsolation ) { 
     return true; 
   } else {
     return false;
