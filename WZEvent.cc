@@ -170,12 +170,20 @@ bool WZEvent::passesSelection()
 
 bool WZEvent::passesFullSelection()
 {
+
+  bool passed = true;
+
+
   std::vector<int> tightLeptons;
 
   // Do we have exactly 3 tight leptons
-  for (unsigned int ilep=0; ilep < leptons.size(); ilep++ ) {
-    if (leptons[ilep]->IsTight())
+  for (unsigned int ilep=0; ilep<leptons.size(); ilep++ ) {
+    
+    if (leptons[ilep]->IsTight()
+	&& leptons[ilep]->Pt() > 10.) {
       tightLeptons.push_back(ilep);
+    }
+
   }
 
   if (tightLeptons.size() != 3)
@@ -194,8 +202,6 @@ bool WZEvent::passesFullSelection()
   // Still 
   // 
 
-
-
   for (unsigned int id1=0; id1 < tightLeptons.size(); id1++ ) {
     for (unsigned int id2=id1+1; id2 < tightLeptons.size(); id2++ ) {
       // Same flavor, opposite charge
@@ -204,6 +210,11 @@ bool WZEvent::passesFullSelection()
 
       if ( abs(leptons[ilep1]->PdgId()) != abs(leptons[ilep2]->PdgId()) )
         continue;
+
+      // 
+      if ( leptons[ilep1]->Pt()<10. || leptons[ilep2]->Pt()<10.) continue;
+      if( leptons[ilep1]->Pt()<20. && leptons[ilep2]->Pt()<20.) continue;
+      
 
       float mcand = (*(leptons[ilep1]) + *(leptons[ilep2])).M();
       std::cout << "Z candidate mass = " << mcand << std::endl;
@@ -221,6 +232,27 @@ bool WZEvent::passesFullSelection()
 
   // Third lepton 
 
+  float ptlw = -10.;
+  int nwlcand = 0;
+  for (int id=0; id<tightLeptons.size(); id++ ) {
+    int ilep = tightLeptons[id];
+    if (ilep != izlep1 && ilep != izlep2) {
+      float ptl = leptons[ilep]->Pt();
+      if (ptl > 20.) {
+	nwlcand++;
+	if (ptl > ptlw) {
+	  ptlw = ptl;
+	  iwlep = ilep;
+	}
+      }
+    }
+  }
+
+
+  if (nwlcand > 1) {
+    std::cout << "SHOULD NOT BE: More than one W candidate lepton \n";
+  }
+
 
   if (izlep1 < 0 || izlep2 < 0 || iwlep < 0)
     return false;
@@ -234,19 +266,35 @@ bool WZEvent::passesFullSelection()
     passesDRCut = true;
   } 
 
+  bool passesMET = false;
+
 
   // MET cut
+  if (pfMET > 30) passesMET = true;
+
+  if (! (passesMET && passesDRCut) ) return false;
 
 
   // Which final state is it
 
-  if ( leptons[izlep1]->PdgId() == 11 && leptons[iwlep]->PdgId() == 11 )
-    final_state = eee;
-  if ( leptons[izlep1]->PdgId() == 11 && leptons[iwlep]->PdgId() == 13 )
-    final_state = eem;
-  if ( leptons[izlep1]->PdgId() == 13 && leptons[iwlep]->PdgId() == 11 )
-    final_state = mme;
-  if ( leptons[izlep1]->PdgId() == 13 && leptons[iwlep]->PdgId() == 11 )
-    final_state = mmm;
+  int zflavor = abs(leptons[izlep1]->PdgId());
+  int wflavor = abs(leptons[iwlep]->PdgId());
+
+  if (zflavor == 11) {
+    if (wflavor == 11) {
+      final_state = eee;
+    }  else  if (wflavor == 13) {
+      final_state = eem;
+    }
+  } else  if (zflavor == 13) {
+    if (wflavor == 11) {
+      final_state = mme;
+    }  else  if (wflavor == 13) {
+      final_state = mmm;
+    }
+  }
+
+  return true;
+
 
 }

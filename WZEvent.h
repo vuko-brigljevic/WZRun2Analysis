@@ -44,6 +44,8 @@ public:
 
   bool passesFullSelection();
 
+  FinalState GetFinalState() { return final_state;}
+
   void ReadEvent();
 
   static TH1F* hScaleInEB;
