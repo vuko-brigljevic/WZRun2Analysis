@@ -154,8 +154,8 @@ bool WZEvent::passesSelection()
 // Z Selection
 // massZCand window [60, 120] and leading lepton Pt > 20 GeV
 
-  const double mZMin = 60;
-  const double mZMax = 120;
+  const double mZMin = 60.;
+  const double mZMax = 120.;
   std::vector<pair<unsigned int, unsigned int> > indexZCand;
 //  const double mZ = 91.11
 
@@ -183,11 +183,54 @@ bool WZEvent::passesSelection()
     }
   }
 
+  if (nZCand != massZCand.size()) {
+    std::cout << "ERROR: Number of Z candidates != vector<massZCand>.size() !!!" << std::endl;
+    return passed;
+  }
 
+  if (nZCand > 2) {
+    std::cout << "ERROR: More than 2 Z candidates in an event - go back to coding !!!" << std::endl;
+    return passed;
+  }
 
-  // Do we have a W candidate
+  if (nZCand == 0) {
+    return passed;
+  }
 
-  // MET cut
+  unsigned int indexZl1, indexZl2;
+  if (nZCand == 1) {
+    indexZl1 = (indexZCand.at(0)).first;
+    indexZl2 = (indexZCand.at(0)).second;
+  }
+
+  if (nZCand == 2) {
+    if (massZCand.at(0) > massZCand.at(1)) {
+      indexZl1 = (indexZCand.at(0)).first;
+      indexZl2 = (indexZCand.at(0)).second;
+    } else {
+      indexZl1 = (indexZCand.at(1)).first;
+      indexZl2 = (indexZCand.at(1)).second;
+    }
+  }
+
+// W selection
+
+  unsigned int indexWl;
+  for (unsigned int iWl = 0; iWl < indexTightLeptons.size(); iWl++) {
+    unsigned int tempIndexWl = indexTightLeptons.at(iWl);
+    if (tempIndexWl != indexZl1 && tempIndexWl != indexZl2) {
+      indexWl = tempIndexWl;
+      if (leptonsNew.at(indexWl)->Pt() > 20. && pfMET > 30. &&
+          leptonsNew.at(indexWl)->DeltaR(*(leptonsNew.at(indexZl1))) > 0.1 &&
+          leptonsNew.at(indexWl)->DeltaR(*(leptonsNew.at(indexZl2))) > 0.1) {
+        passed = true;
+        selection_level = passesWSelection;
+      } else {
+      return passed;
+      }
+    }
+  }
+
   return passed;
 }
 

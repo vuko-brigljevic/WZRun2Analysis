@@ -3,9 +3,9 @@
 #include "TFile.h"
 #include "TTree.h"
 #include "TChain.h"
-//#include "TH1F.h"
-#include "TH1D.h"
-#include "TH2D.h"
+#include "TH1F.h"
+//#include "TH1D.h"
+//#include "TH2D.h"
 #include "TLorentzVector.h"
 #include "WZEvent.h"
 
@@ -73,10 +73,10 @@ int main(int argc, char **argv)
     fout = new TFile("wzJets-test.root", "RECREATE");
   }
 
-  TH1F* hNele = new TH1F ("hNele", "Number electrons", 15, -0.5, 14.5);
+/*  TH1F* hNele = new TH1F ("hNele", "Number electrons", 15, -0.5, 14.5);
   TH1F* hNmu = new TH1F ("hNmu", "Number muons", 15, -0.5, 14.5);
   TH1F* hElePt = new TH1F ("hElePt", "Electron Pt", 100, 0., 100.);
-  TH1F* hMuPt = new TH1F ("hMuPt", "Muon Pt", 100, 0., 200.);
+  TH1F* hMuPt = new TH1F ("hMuPt", "Muon Pt", 100, 0., 200.); */
   TH1F* hMet = new TH1F ("hMet", "Missing Et", 100, 0., 200.);
 
   TH1F* hNZCand = new TH1F ("hNZCand", "Number Z candidates", 6, -1.5, 4.5);
@@ -150,7 +150,7 @@ int main(int argc, char **argv)
   unsigned int testPassed1 = 0;
   unsigned int testPassed2 = 0;
 
-  unsigned int nSelected =0;
+  unsigned int nSelected = 0;
 
   // Event loop
 
@@ -168,7 +168,7 @@ int main(int argc, char **argv)
     cWZ->ReadEvent();
 
     hMet->Fill(cWZ->pfMET);
-    hNele->Fill(cWZ->nEle);
+/*    hNele->Fill(cWZ->nEle);
     hNmu->Fill(cWZ->nMu);
 
     for (unsigned int iEle = 0; iEle < cWZ->elePt->size(); iEle++) {
@@ -180,7 +180,7 @@ int main(int argc, char **argv)
       float mPt = cWZ->muPt->at(iMu);
       hMuPt->Fill(mPt);
     }
-
+*/
     if  (cWZ->nEle + cWZ->nMu == 3) {
       testPassed++;
     }
@@ -269,7 +269,7 @@ int main(int argc, char **argv)
     }
 
     if (cWZ->GetSelectionLevel() == passesWSelection) {
-      nZSelected++;
+      nWSelected++;
       if (cWZ->GetFinalState() == undefined) {
         nUndefined3++;
       }
@@ -338,10 +338,10 @@ int main(int argc, char **argv)
 
   fout->cd();
 
-  hNele->Write();
+/*  hNele->Write();
   hNmu->Write();
   hElePt->Write();
-  hMuPt->Write();
+  hMuPt->Write(); */
   hMet->Write();
   hNZCand->Write();
   hMassZCand->Write();

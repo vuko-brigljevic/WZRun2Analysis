@@ -67,7 +67,7 @@ bool Electron::IsTightTwiki()
     passesTight = true;
   }
   
-  if ( Pt() > 10 && Eta() < 2.5 ) {
+  if ( Pt() > 10. && fabs(Eta()) < 2.5 ) {
     passesPtEtaCuts = true;
   }
 
@@ -97,7 +97,7 @@ bool Muon::IsTight() {
   bool passesEtaCut = false;
   bool passesIsolation  = false;
 
-  if ( (wztree->muChi2NDF)->at(index) < 10 && (wztree->muMuonHits)->at(index) > 0 &&
+  if ( (wztree->muChi2NDF)->at(index) < 10. && (wztree->muMuonHits)->at(index) > 0 &&
        (wztree->muStations)->at(index) > 1 && (wztree->muD0)->at(index) < 0.2 &&
        (wztree->muDz)->at(index) < 0.5 && (wztree->muPixelHits)->at(index) > 0 &&
        (wztree->muTrkLayers)->at(index) > 5 ) {
@@ -140,14 +140,14 @@ bool Muon::IsTightTwiki()
   bool passesPtEtaCuts = false;
   bool passesIsolation  = false;
 
-  if ( (wztree->muChi2NDF)->at(index) < 10 && (wztree->muMuonHits)->at(index) > 0 &&
+  if ( (wztree->muChi2NDF)->at(index) < 10. && (wztree->muMuonHits)->at(index) > 0 &&
        (wztree->muStations)->at(index) > 1 && (wztree->muD0)->at(index) < 0.2 &&
        (wztree->muDz)->at(index) < 0.5 && (wztree->muPixelHits)->at(index) > 0 &&
        (wztree->muTrkLayers)->at(index) > 5 ) {
     passesTight = true;
   }
 
-  if ( Pt() > 10 && Eta() < 2.4 ) {
+  if ( Pt() > 10. && fabs(Eta()) < 2.4 ) {
     passesPtEtaCuts = true;
   }
 

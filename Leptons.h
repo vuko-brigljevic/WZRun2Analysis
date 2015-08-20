@@ -12,7 +12,7 @@ class Lepton : public TLorentzVector {
 
 public:
   Lepton(int ind, double pt, double eta, double phi, float ch);
-  float GetPdgId() { return pdgid; }
+  int GetPdgId() { return pdgid; }
   float GetCharge() { return charge; }
   virtual bool IsTight() = 0;
   virtual bool IsTightTwiki() = 0;
@@ -21,7 +21,7 @@ public:
 
 
 protected:
-  float pdgid;
+  int pdgid;
   float charge;
   int index;
 
