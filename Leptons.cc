@@ -53,6 +53,33 @@ bool Electron::IsTight() {
 }
 
 
+bool Electron::IsTightTwiki()
+{
+  if (wztree == 0 ) {
+    std::cout << "WZEvent pointer is ZERO!!!! \n";
+    return false;
+  }
+
+  bool passesTight = false;
+  bool passesPtEtaCuts = false;
+  
+  if ( (wztree->eleIDbit)->at(index) == 2 ) {
+    passesTight = true;
+  }
+  
+  if ( Pt() > 10 && Eta() < 2.5 ) {
+    passesPtEtaCuts = true;
+  }
+
+  if ( passesTight && passesPtEtaCuts ) {
+    return true;
+  }
+  else {
+    return false;
+  }
+}
+
+
 Muon::Muon(int ind, double pt, double eta, double phi, float ch)
   : Lepton(ind, pt, eta, phi, ch)
 {
@@ -99,5 +126,41 @@ bool Muon::IsTight() {
   } else {
     return false;
   }
-
 }
+
+
+bool Muon::IsTightTwiki()
+{
+  if (wztree == 0 ) { 
+    std::cout << "WZEvent pointer is ZERO!!!! \n";
+    return false;
+  }
+
+  bool passesTight      = false;
+  bool passesPtEtaCuts = false;
+  bool passesIsolation  = false;
+
+  if ( (wztree->muChi2NDF)->at(index) < 10 && (wztree->muMuonHits)->at(index) > 0 &&
+       (wztree->muStations)->at(index) > 1 && (wztree->muD0)->at(index) < 0.2 &&
+       (wztree->muDz)->at(index) < 0.5 && (wztree->muPixelHits)->at(index) > 0 &&
+       (wztree->muTrkLayers)->at(index) > 5 ) {
+    passesTight = true;
+  }
+
+  if ( Pt() > 10 && Eta() < 2.4 ) {
+    passesPtEtaCuts = true;
+  }
+
+  if ( (((wztree->muPFChIso)->at(index) +
+        TMath::Max((wztree->muPFPhoIso)->at(index) + (wztree->muPFNeuIso)->at(index) -
+                   0.5 * (wztree->muPFPUIso)->at(index) , 0.0)) / Pt()) < 0.12 ) {
+    passesIsolation = true;
+  }
+
+  if (passesTight && passesPtEtaCuts && passesIsolation) { 
+    return true; 
+  } else {
+    return false;
+  }
+}
+

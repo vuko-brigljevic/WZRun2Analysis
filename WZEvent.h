@@ -2,16 +2,11 @@
 #define WZEvent_h
 
 
-// #include "GGTree.h"
 #include "EventTree.h"
 #include "Leptons.h"
 
 
-
 #define WZBASECLASS EventTree
-
-//Lucija commented it
-//#define WZBASECLASS WZGenEvent
 
 
 #include "TLorentzVector.h"
@@ -21,24 +16,21 @@
 #include <vector>
 
 
-
-// #include "WZGenNew.h"
-//Lucija commented it
-//#include "WZGenEvent.h"
-
 enum FinalState { undefined,
-		  eee,
-		  eem,
-		  mme,
-		  mmm};
+                  eee,
+                  eem,
+                  mme,
+                  mmm};
+
 
 enum PassedSelectionStep { selectionNotRun,
+                           failsThreeLeptonFilter,
+                           passesPreselection,
+                           
 			   failsSelection,
 			   passesZSelection,
 			   passesWSelection,
 			   passesFullSelection};
-		  
-
 
 
 class WZEvent : public WZBASECLASS
@@ -47,6 +39,8 @@ public:
   WZEvent(TTree *tree);
 
   bool passesSelection();
+  FinalState GetFinalState() { return final_state; };
+  PassedSelectionStep GetSelectionLevel() { return selection_level; };
 
   bool passesFullSelection();
 
@@ -67,12 +61,12 @@ protected:
   TRandom3 *random;
 
   FinalState final_state;
-  PassedSelectionStep  selection_level;
-  
+  PassedSelectionStep selection_level;
 
-  std::vector<Lepton* > leptons;
-
-
+  std::vector<Lepton*> leptons;
+  std::vector<Lepton*> leptonsNew;
+  unsigned int nEleTightTwiki;
+  unsigned int nMuTightTwiki;
 };
 
 

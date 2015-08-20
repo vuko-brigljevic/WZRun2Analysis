@@ -14,7 +14,8 @@ public:
   Lepton(int ind, double pt, double eta, double phi, float ch);
   float PdgId() { return pdgid; };
   virtual bool IsTight() = 0;
-  int Index() { return index; }
+  virtual bool IsTightTwiki() = 0;
+  int Index() { return index; };
   static void SetWZEvent(WZEvent* wzt);
 
 
@@ -33,6 +34,7 @@ class Electron : public Lepton {
 public:
   Electron(int index, double pt, double eta, double phi, float ch);
   bool IsTight();
+  bool IsTightTwiki();
 
 protected:
 
@@ -45,6 +47,7 @@ class Muon : public Lepton {
 public:
   Muon(int index, double pt, double eta, double phi, float ch);
   bool IsTight();
+  bool IsTightTwiki();
 
 protected:
 

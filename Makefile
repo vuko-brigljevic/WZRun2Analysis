@@ -37,7 +37,11 @@ endef
 
 #all: $(EXES)
 
-wzAnalysis: wzAnalysis.o WZEvent.o EventTree.o Leptons.o GenericAnalysis.o WZSelectionAnalysis.o
+wzAnalysis: wzAnalysis.o WZEvent.o EventTree.o Leptons.o
+
+wzSelectionYields: wzSelectionYields.o WZEvent.o EventTree.o Leptons.o
+
+
 clean:
 	- $(RM) *.o *.Dict.cc *.Dict.h $(addsuffix .o, $(EXES)) Dependencies.make $(EXES) *.P
 
