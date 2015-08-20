@@ -48,7 +48,7 @@ void WZEvent::ReadEvent()
 
 
   // Electrons
-  for (int iele=0; iele<eleCharge->size(); iele++) {
+  for (unsigned int iele=0; iele < eleCharge->size(); iele++) {
     Electron* ele = new Electron(iele,
 				 (*elePt)[iele],
 				 (*eleEta)[iele],
@@ -59,16 +59,13 @@ void WZEvent::ReadEvent()
   }
 
   // Muons
-  for (int imu=0; imu<muCharge->size(); imu++) {
+  for (unsigned int imu=0; imu < muCharge->size(); imu++) {
     leptons.push_back( new Muon(imu,
      			    (*muPt)[imu],
      			    (*muEta)[imu],
      			    (*muPhi)[imu],
      			    (*muCharge)[imu]));
   }
-
-
-
 }
 
 
@@ -76,8 +73,8 @@ void WZEvent::ReadEvent()
 
 
 
-bool WZEvent::passesSelection(){
-
+bool WZEvent::passesSelection()
+{
   bool passed = false;
 
   // Do we have a Z decay ? 
@@ -94,13 +91,16 @@ bool WZEvent::passesSelection(){
 }
 
 
-bool WZEvent::passesFullSelection(){
+bool WZEvent::passesFullSelection()
+{
+
+  bool passed = true;
 
 
   std::vector<int> tightLeptons;
 
   // Do we have exactly 3 tight leptons
-  for (int ilep=0; ilep<leptons.size(); ilep++ ) {
+  for (unsigned int ilep=0; ilep<leptons.size(); ilep++ ) {
     
     if (leptons[ilep]->IsTight()
 	&& leptons[ilep]->Pt() > 10.) {
@@ -109,13 +109,14 @@ bool WZEvent::passesFullSelection(){
 
   }
 
-  if (tightLeptons.size() != 3) return false;
+  if (tightLeptons.size() != 3)
+    return false;
 
 
   // Look for Z candidates
 
-  int izlep1=-1;
-  int izlep2=-1;
+  int izlep1 = -1;
+  int izlep2 = -1;
   int iwlep = -1;
 
   float dzmin = 1000.;
@@ -124,14 +125,14 @@ bool WZEvent::passesFullSelection(){
   // Still 
   // 
 
-  
-  for (int id1=0; id1<tightLeptons.size(); id1++ ) {
-    for (int id2=id1+1; id2<tightLeptons.size(); id2++ ) {
+  for (unsigned int id1=0; id1 < tightLeptons.size(); id1++ ) {
+    for (unsigned int id2=id1+1; id2 < tightLeptons.size(); id2++ ) {
       // Same flavor, opposite charge
       int ilep1 = tightLeptons[id1];
       int ilep2 = tightLeptons[id2];
 
-      if ( abs(leptons[ilep1]->PdgId()) != abs(leptons[ilep2]->PdgId()) ) continue;
+      if ( abs(leptons[ilep1]->PdgId()) != abs(leptons[ilep2]->PdgId()) )
+        continue;
 
       // 
       if ( leptons[ilep1]->Pt()<10. || leptons[ilep2]->Pt()<10.) continue;
@@ -141,9 +142,9 @@ bool WZEvent::passesFullSelection(){
       float mcand = (*(leptons[ilep1]) + *(leptons[ilep2])).M();
       std::cout << "Z candidate mass = " << mcand << std::endl;
       if (fabs(mcand - 91.11) < dzmin ) {
-	dzmin = fabs(mcand - 91.11);
-	izlep1 = ilep1;
-	izlep2 = ilep2;
+      	dzmin = fabs(mcand - 91.11);
+      	izlep1 = ilep1;
+      	izlep2 = ilep2;
       }
     }
   }
@@ -176,15 +177,15 @@ bool WZEvent::passesFullSelection(){
   }
 
 
-  if (izlep1<0 || izlep2 < 0 || iwlep < 0) return false;
+  if (izlep1 < 0 || izlep2 < 0 || iwlep < 0)
+    return false;
 
   // DR cut between Z and W leptons
 
   bool passesDRCut = false;
 
-  if (  (*(leptons[izlep1])).DeltaR( (*(leptons[iwlep]))) < 0.1
-	&&  (*(leptons[izlep2])).DeltaR( (*(leptons[iwlep]))) < 0.1 ) {
-
+  if ( (*(leptons[izlep1])).DeltaR( (*(leptons[iwlep]))) < 0.1
+       &&  (*(leptons[izlep2])).DeltaR( (*(leptons[iwlep]))) < 0.1 ) {
     passesDRCut = true;
   } 
 
@@ -194,18 +195,29 @@ bool WZEvent::passesFullSelection(){
   // MET cut
   if (pfMET > 30) passesMET = true;
 
+  if (! (passesMET && passesDRCut) ) return false;
+
+
   // Which final state is it
 
-  if (leptons[izlep1]->PdgId() == 11 && leptons[iwlep]->PdgId() == 11 ) 
-    final_state = eee;
-  if (leptons[izlep1]->PdgId() == 11 && leptons[iwlep]->PdgId() == 13 ) 
-    final_state = eem;
-  if (leptons[izlep1]->PdgId() == 11 && leptons[iwlep]->PdgId() == 11 ) 
-    final_state = mme;
-  if (leptons[izlep1]->PdgId() == 11 && leptons[iwlep]->PdgId() == 11 ) 
-    final_state = mmm;
+  int zflavor = abs(leptons[izlep1]->PdgId());
+  int wflavor = abs(leptons[iwlep]->PdgId());
+
+  if (zflavor == 11) {
+    if (wflavor == 11) {
+      final_state = eee;
+    }  else  if (wflavor == 13) {
+      final_state = eem;
+    }
+  } else  if (zflavor == 13) {
+    if (wflavor == 11) {
+      final_state = mme;
+    }  else  if (wflavor == 13) {
+      final_state = mmm;
+    }
+  }
+
+  return true;
 
 
 }
-
-

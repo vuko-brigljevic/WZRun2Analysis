@@ -42,20 +42,20 @@ int main(int argc, char **argv)
   using namespace std;
 
 
-  bool debug=DEBUG;
+//  bool debug=DEBUG;
 
   char * outputName(0);
   char * inputFileName(0);
-  char * binningFileName(0);
+//  char * binningFileName(0);
 
   char * fileList;
   bool useInputList=false;
 
   bool gotInput  = false;
   bool gotOutput = false;
-  bool gotHistoBinning = false;
-  bool gotSystematicsConfig = false;
-  char * systConfigFile(0);
+//  bool gotHistoBinning = false;
+//  bool gotSystematicsConfig = false;
+//  char * systConfigFile(0);
   char c;
 
   while ((c = getopt (argc, argv, "i:o:l:")) != -1)
@@ -98,12 +98,10 @@ int main(int argc, char **argv)
   TH1F * hElePt            = new TH1F ("hElePt","Electron Pt",100,0.,100.);
 
 
-  TH1D * hZmassMu1         = new TH1D ("hZmassMu1", "hZmassMu1", 100, 60, 120);  
-  TH1D * hZmassEl1         = new TH1D ("hZmassEl1", "hZmassEl1", 100, 60, 120);  
+//  TH1D * hZmassMu1         = new TH1D ("hZmassMu1", "hZmassMu1", 100, 60, 120);  
+//  TH1D * hZmassEl1         = new TH1D ("hZmassEl1", "hZmassEl1", 100, 60, 120);  
 
-  TH2D * hRecoVsGenChannel     = new TH2D ("hRecoVsGenChannel","Reco vs Gen Channel",
-					   5, -0.5, 4.5,
-					   5, -0.5, 4.5);
+//  TH2D * hRecoVsGenChannel = new TH2D ("hRecoVsGenChannel", "Reco vs Gen Channel", 5, -0.5, 4.5, 5, -0.5, 4.5);
 
 
   // INPUT TREES
@@ -124,7 +122,7 @@ int main(int argc, char **argv)
     std::cout << "Got no input ROOT file: quit \n";
     return 1;
   }
-  for (int input=0; input< inputName.size(); input++){
+  for (unsigned int input=0; input < inputName.size(); input++){
     std::cout << "Adding: " << input << std::endl;
     wz.Add(inputName[input]);
     std::cout << "Added \n";
@@ -160,7 +158,7 @@ int main(int argc, char **argv)
     hMet->Fill(cWZ->pfMET);
     hNele->Fill(cWZ->nEle);
     hNmu->Fill(cWZ->nMu);
-    for (int iele=0; iele< cWZ->elePt->size(); iele++) {
+    for (unsigned int iele=0; iele < cWZ->elePt->size(); iele++) {
 
       float pt = (*cWZ->elePt)[iele];
       hElePt->Fill(pt);
