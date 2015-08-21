@@ -157,7 +157,7 @@ bool WZEvent::passesSelection()
   const double mZMin = 60.;
   const double mZMax = 120.;
   std::vector<pair<unsigned int, unsigned int> > indexZCand;
-//  const double mZ = 91.11
+  const double mZ = 91.1876;
 
   for (unsigned int ind1 = 0; ind1 < indexTightLeptons.size(); ind1++) {
     for (unsigned int ind2 = ind1+1; ind2 < indexTightLeptons.size(); ind2++) {
@@ -204,7 +204,7 @@ bool WZEvent::passesSelection()
   }
 
   if (nZCand == 2) {
-    if (massZCand.at(0) > massZCand.at(1)) {
+    if (fabs(massZCand.at(0) - mZ) < fabs(massZCand.at(1) - mZ)) {
       indexZl1 = (indexZCand.at(0)).first;
       indexZl2 = (indexZCand.at(0)).second;
     } else {
