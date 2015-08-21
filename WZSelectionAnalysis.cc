@@ -4,6 +4,8 @@
 #include <fstream>
 #include <sstream>
 
+//#include "TPythia6.h"
+
 
   
 WZSelectionAnalysis::WZSelectionAnalysis(WZEvent * e, TFile * fout) 
@@ -33,6 +35,7 @@ void WZSelectionAnalysis::Init() {
     eventLists[i].open(fileName.str().c_str());
   }
 
+
 }
 
 
@@ -44,7 +47,27 @@ void WZSelectionAnalysis::EventAnalysis() {
 
   yieldsByChannel[wzevt->GetFinalState()-1]++;  
 
-  wzevt->DumpEvent(eventLists[wzevt->GetFinalState()-1]);
+  wzevt->DumpEvent(eventLists[wzevt->GetFinalState()-1],2);
+
+
+  // MC Analysis
+
+  std::cout << "MC Tree \n";
+  std::cout << "===============\n";
+  for (int igen = 0; igen<wzevt->nMC; igen++) {
+    //    char  pyName[20];
+    //    TPythia::Pyname((wzevt->mcPID)->at(igen),pyName);
+
+    std::cout << "Gen Particle: " << (wzevt->mcPID)->at(igen)
+	      << "\t status   : " << (wzevt->mcStatus)->at(igen)
+      //	      << "  " << pyName
+	      << "\t mother ID: " << (wzevt->mcMomPID)->at(igen)
+	      << "\t GrandMa  ID: " << (wzevt->mcGMomPID)->at(igen)
+	      << std::endl;
+
+
+  }
+
 
 }
 

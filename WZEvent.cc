@@ -284,7 +284,7 @@ bool WZEvent::passesFullSelection()
       if( leptons[ilep1]->Pt()<20. && leptons[ilep2]->Pt()<20.) continue;
 
       float mcand = (*(leptons[ilep1]) + *(leptons[ilep2])).M();
-      float dmass = fabs(mcand - 91.11);
+      float dmass = fabs(mcand - 91.1876);
       if ( mcand > 60. && mcand<120.
 	   && dmass < dzmin ) {
       	dzmin = dmass;
