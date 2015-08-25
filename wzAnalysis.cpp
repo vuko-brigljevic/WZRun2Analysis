@@ -3,20 +3,12 @@
 #include "TFile.h"
 #include "TTree.h"
 #include "TChain.h"
-//#include "TH1F.h"
 #include "TH1D.h"
 #include "TH2D.h"
 #include "TLorentzVector.h"
 
-// #include "RooUnfoldResponse.h"
-
-// Replace this with the new tree
 #include "WZEvent.h"
-
 #include "WZSelectionAnalysis.h"
-
-//#include "WZ.h"
-//#include "WZ2012Data.h"
 
 #include <iostream>
 #include <fstream>
@@ -26,24 +18,11 @@
 #include <set>
 
 
-// TH1D * createJetPtHisto(std::string key, std::string title) {
+using namespace std;
 
-//   TH1D * h = new TH1D(key.c_str(),title.c_str(), 10,0., 500.);
-//   return h;
-
-// }
-
-
-//function declaration goes here:
-//
-//
-//
 
 int main(int argc, char **argv)
 {
-  using namespace std;
-
-
 //  bool debug=DEBUG;
 
   char * outputName(0);
@@ -79,7 +58,7 @@ int main(int argc, char **argv)
 	strcpy(fileList,optarg);
 	break;
       default:
-	std::cout << "usage: [-k|-g|-l] [-v] [-b <binWidth>]   -i <input> -o <output> \n";
+	cout << "usage: [-k|-g|-l] [-v] [-b <binWidth>]   -i <input> -o <output> \n";
 	abort ();
       }
 
@@ -105,7 +84,7 @@ int main(int argc, char **argv)
 
   // INPUT TREES
 
-  std::vector<TString>inputName;
+  vector<TString>inputName;
   TChain wz("ggNtuplizer/EventTree");
 
   if (useInputList) {
@@ -118,29 +97,28 @@ int main(int argc, char **argv)
   } else   if (gotInput) {
     inputName.push_back(inputFileName);
   } else {
-    std::cout << "Got no input ROOT file: quit \n";
+    cout << "Got no input ROOT file: quit \n";
     return 1;
   }
   for (unsigned int input=0; input < inputName.size(); input++){
-    std::cout << "Adding: " << input << std::endl;
+    cout << "Adding: " << input << endl;
     wz.Add(inputName[input]);
-    std::cout << "Added \n";
+    cout << "Added \n";
   }
   TTree *wz_tTree=(TTree*)&wz;
   WZEvent *cWZ= new WZEvent(wz_tTree);
   Int_t events= wz_tTree->GetEntries();
   
-  std::cout<<"number of events: "<<events << std::endl;
+  cout<<"number of events: "<<events << endl;
 
   //  WZAnalysis   genAnalysis(cWZ);
   //  genAnalysis.Init();
 
-  WZSelectionAnalysis * myAnalysis = new WZSelectionAnalysis(cWZ,fout);
+  WZSelectionAnalysis* myAnalysis = new WZSelectionAnalysis(cWZ,fout);
   myAnalysis->Init();
 
   int nselected = 0;
-
-
+  
   //
   // Event loop
   // 
@@ -161,12 +139,10 @@ int main(int argc, char **argv)
     hNmu->Fill(cWZ->nMu);
 
     myAnalysis->EventAnalysis();
-
-
   }
 
-  std::cout << "Events : " << nevents
-	    << "\t Total Selected = " << nselected << std::endl;
+  cout << "Events : " << nevents
+	    << "\t Total Selected = " << nselected << endl;
 
 
   myAnalysis->Finish();

@@ -1,166 +1,154 @@
 #include "Leptons.h"
 #include "WZEvent.h"
-#include "TMath.h"
+#include "Constants.h"
+
 #include <iostream>
 
 
+using namespace std;
+
+
 // Initialize static members
-WZEvent* Lepton::wztree = 0;
+WZEvent* Lepton::fWZTree = 0;
 
 
-void Lepton::SetWZEvent(WZEvent* wzt) {
-  wztree = wzt;
-}
-
-Lepton::Lepton(int ind, double pt, double eta, double phi, float ch) 
+void Lepton::SetWZEvent(WZEvent* wzt)
 {
-    SetPtEtaPhiM(pt, eta, phi, 0.);
-    charge   = ch;
-    index    = ind;
+  fWZTree = wzt;
 }
 
 
-Electron::Electron(int ind, double pt, double eta, double phi, float ch)
-  : Lepton(ind, pt, eta, phi, ch)
+Lepton::Lepton(unsigned int index, double pt, double eta, double phi, double charge) 
 {
-  pdgid = 11;
-}
-
-bool Electron::IsTight() {
-
-  if (wztree == 0 ) {
-    std::cout << "WZEvent pointer is ZERO!!!! \n";
-    return false;
-  }
-
-  bool passesTight = false;
-  bool passesEtaCut = false;
-  
-  if ( ((wztree->eleIDbit)->at(index))>>2&1 ) {
-    passesTight = true;
-  }
-  
-  if ( fabs(Eta()) < 2.5 ) {
-    passesEtaCut = true;
-  }
-
-  if ( passesTight && passesEtaCut ) {
-    return true;
-  }
-  else {
-    return false;
-  }
+  SetPtEtaPhiM(pt, eta, phi, 0.);
+  fCharge   = charge;
+  fIndex    = index;
 }
 
 
-bool Electron::IsTightTwiki()
+Electron::Electron(unsigned int index, double pt, double eta, double phi, double charge)
+  : Lepton(index, pt, eta, phi, charge)
 {
-  if (wztree == 0 ) {
-    std::cout << "WZEvent pointer is ZERO!!!! \n";
-    return false;
-  }
-
-  bool passesTight = false;
-  bool passesPtEtaCuts = false;
-  
-  if (((wztree->eleIDbit)->at(index))>>2&1) {
-    passesTight = true;
-  }
-  
-  if ( Pt() > 10. && fabs(Eta()) < 2.5 ) {
-    passesPtEtaCuts = true;
-  }
-
-  if ( passesTight && passesPtEtaCuts ) {
-    return true;
-  }
-  else {
-    return false;
-  }
+  fPdgId = 11;
 }
 
 
-Muon::Muon(int ind, double pt, double eta, double phi, float ch)
-  : Lepton(ind, pt, eta, phi, ch)
+pair<bool, bool> Electron::IsLooseTight()
 {
-  pdgid = 13;
-}
+  pair<bool, bool> id(false, false);
 
-bool Muon::IsTight() {
-
-  if ( wztree == 0 ) { 
-    std::cout << "WZEvent pointer is ZERO!!!! \n";
-    return false;
+  if (fWZTree == 0) {
+    cout << "WZEvent pointer is ZERO!!!! \n";
+    return id;
   }
 
-  bool passesTight      = false;
-  bool passesEtaCut = false;
-  bool passesIsolation  = false;
-
-  if ( (wztree->muChi2NDF)->at(index) < 10. && (wztree->muMuonHits)->at(index) > 0 &&
-       (wztree->muStations)->at(index) > 1 && (wztree->muD0)->at(index) < 0.2 &&
-       (wztree->muDz)->at(index) < 0.5 && (wztree->muPixelHits)->at(index) > 0 &&
-       (wztree->muTrkLayers)->at(index) > 5 ) {
-
-    passesTight = true;
+  if(!(fWZTree->nEle)) {
+  return id;
   }
 
-  if ( fabs(Eta()) < 2.4 ) {
-    passesEtaCut = true;
+  if (fWZTree->eleIDbit->at(fIndex)>>ELELOOSE_BIT&1) {
+    id.first = true;
   }
 
-
-  // From UW Twiki
-  // (mu.chargedHadronIso()
-  // +max(mu.photonIso()+mu.neutralHadronIso()
-  //       -0.5*mu.puChargedHadronIso,0.0))/mu.pt()
-
-  if ( ((wztree->muPFChIso)->at(index) +
-        TMath::Max((wztree->muPFPhoIso)->at(index) + (wztree->muPFNeuIso)->at(index) -
-                   0.5 * (wztree->muPFPUIso)->at(index) , 0.)) / Pt() < 0.12 ) {
-    passesIsolation = true;
+  if (fWZTree->eleIDbit->at(fIndex)>>ELEMEDIUM_BIT&1) {
+    id.second = true;
   }
 
-  if ( passesTight && passesEtaCut && passesIsolation ) { 
-    return true; 
-  } else {
-    return false;
-  }
+  return id;
 }
 
 
-bool Muon::IsTightTwiki()
+bool Electron::PassesPtMinCut()
 {
-  if (wztree == 0 ) { 
-    std::cout << "WZEvent pointer is ZERO!!!! \n";
-    return false;
+  bool passPt = false;
+
+  if (Pt() > ELE_PTMIN) {
+  passPt = true;
   }
 
-  bool passesTight      = false;
-  bool passesPtEtaCuts = false;
-  bool passesIsolation  = false;
+  return passPt;
+}
 
-  if ( (wztree->muChi2NDF)->at(index) < 10. && (wztree->muMuonHits)->at(index) > 0 &&
-       (wztree->muStations)->at(index) > 1 && (wztree->muD0)->at(index) < 0.2 &&
-       (wztree->muDz)->at(index) < 0.5 && (wztree->muPixelHits)->at(index) > 0 &&
-       (wztree->muTrkLayers)->at(index) > 5 ) {
-    passesTight = true;
+
+bool Electron::PassesEtaMaxCut()
+{
+  bool passEta = false;
+
+  if (abs(Eta()) < ELE_ETAMAX) {
+  passEta = true;
   }
 
-  if ( Pt() > 10. && fabs(Eta()) < 2.4 ) {
-    passesPtEtaCuts = true;
+  return passEta;
+}
+
+
+Muon::Muon(unsigned int index, double pt, double eta, double phi, double charge)
+  : Lepton(index, pt, eta, phi, charge)
+{
+  fPdgId = 13;
+}
+
+
+pair<bool, bool> Muon::IsLooseTight()
+{
+  pair<bool, bool> id(false, false);
+
+  if (fWZTree == 0) {
+    cout << "WZEvent pointer is ZERO!!!! \n";
+    return id;
   }
 
-  if ( (((wztree->muPFChIso)->at(index) +
-        TMath::Max((wztree->muPFPhoIso)->at(index) + (wztree->muPFNeuIso)->at(index) -
-                   0.5 * (wztree->muPFPUIso)->at(index) , 0.0)) / Pt()) < 0.12 ) {
-    passesIsolation = true;
+  if (!(fWZTree->nMu)) {
+    return id;
   }
 
-  if (passesTight && passesPtEtaCuts && passesIsolation) { 
-    return true; 
-  } else {
-    return false;
+// From UW Twiki
+// (mu.chargedHadronIso() + max(mu.photonIso()+mu.neutralHadronIso()-0.5*mu.puChargedHadronIso,0.0)) / mu.pt()
+  const double relIso = (fWZTree->muPFChIso->at(fIndex) + max(fWZTree->muPFPhoIso->at(fIndex) +
+                         fWZTree->muPFNeuIso->at(fIndex) - 0.5*fWZTree->muPFPUIso->at(fIndex), 0.))
+                        / Pt();
+
+  if ((fWZTree->muType->at(fIndex)>>GLOBALMUON_BIT&1 ||
+      fWZTree->muType->at(fIndex)>>TRACKERMUON_BIT&1) &&
+      fWZTree->muType->at(fIndex)>>PFMUON_BIT&1 &&
+      relIso < MULOOSE_RELISOMIN) {
+    id.first = true;
   }
+
+  if (fWZTree->muChi2NDF->at(fIndex) < 10. && fWZTree->muMuonHits->at(fIndex) > 0 &&
+      fWZTree->muStations->at(fIndex) > 1 &&
+      fWZTree->muD0->at(fIndex) < 0.2 && fWZTree->muDz->at(fIndex) < 0.5 &&
+      fWZTree->muPixelHits->at(fIndex) > 0 && fWZTree->muTrkLayers->at(fIndex) > 5 &&
+      relIso < MUTIGHT_RELISOMIN &&
+      fWZTree->muType->at(fIndex)>>GLOBALMUON_BIT&1 &&
+      fWZTree->muType->at(fIndex)>>PFMUON_BIT&1 ) {
+    id.second = true;
+  }
+
+  return id;
+}
+
+
+bool Muon::PassesPtMinCut()
+{
+  bool passPt = false;
+
+  if (Pt() > MU_PTMIN) {
+  passPt = true;
+  }
+
+  return passPt;
+}
+
+
+bool Muon::PassesEtaMaxCut()
+{
+  bool passEta = false;
+
+  if (abs(Eta()) < MU_ETAMAX) {
+  passEta = true;
+  }
+
+  return passEta;
 }
 

@@ -8,52 +8,57 @@
 class WZEvent;
 
 
-class Lepton : public TLorentzVector {
+class Lepton : public TLorentzVector
+{
 
 public:
-  Lepton(int ind, double pt, double eta, double phi, float ch);
-  int GetPdgId() { return pdgid; }
-  float GetCharge() { return charge; }
-  virtual bool IsTight() = 0;
-  virtual bool IsTightTwiki() = 0;
-  int Index() { return index; };
+
+  Lepton(unsigned int ind, double pt, double eta, double phi, double ch);
+  int GetPdgId() { return fPdgId; }
+  double GetCharge() { return fCharge; }
+  int GetIndex() { return fIndex; };
+
+  virtual std::pair<bool, bool> IsLooseTight() = 0;
+  virtual bool PassesPtMinCut() = 0;
+  virtual bool PassesEtaMaxCut() = 0;
+
   static void SetWZEvent(WZEvent* wzt);
 
 
 protected:
-  int pdgid;
-  float charge;
-  int index;
 
-  static WZEvent* wztree;
-  
+  int fPdgId;
+  double fCharge;
+  int fIndex;
+
+  static WZEvent* fWZTree;
+
 };
 
 
-class Electron : public Lepton {
+class Electron : public Lepton
+{
 
 public:
-  Electron(int index, double pt, double eta, double phi, float ch);
-  bool IsTight();
-  bool IsTightTwiki();
 
-protected:
-
-  //  float a[1000];
+  Electron(unsigned int index, double pt, double eta, double phi, double charge);
+  std::pair<bool, bool> IsLooseTight();
+  bool PassesPtMinCut();
+  bool PassesEtaMaxCut();
 
 };
 
-class Muon : public Lepton {
+
+class Muon : public Lepton
+{
 
 public:
-  Muon(int index, double pt, double eta, double phi, float ch);
-  bool IsTight();
-  bool IsTightTwiki();
 
-protected:
-
-  //  float amu[1000];
+  Muon(unsigned int index, double pt, double eta, double phi, double charge);
+  std::pair<bool, bool> IsLooseTight();
+  bool PassesPtMinCut();
+  bool PassesEtaMaxCut();
 
 };
 
-#endif // #ifdef 
+#endif

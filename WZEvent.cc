@@ -1,18 +1,14 @@
 #include "WZEvent.h"
-
-//#include "JetEnergyTool.h"
-//#include "MetSystematicsTool.h"
-//#include "SystematicsManager.h"
-
+#include "Constants.h"
 #include "TLorentzVector.h"
-#include "TMath.h"
 
 #include <iostream>
-#include <math.h>
 
 
+using namespace std;
 
-WZEvent::WZEvent(TTree * tree) :
+
+WZEvent::WZEvent(TTree* tree) :
   WZBASECLASS(tree)
 {
   // Set static pointer to Lepton class
@@ -20,214 +16,221 @@ WZEvent::WZEvent(TTree * tree) :
 }
 
 
-void WZEvent::Cleanup()
+void WZEvent::Clear()
 {
-  final_state     = undefined;
-  selection_level = selectionNotRun;
+  fHLT25ns.clear();
+  fHLT50ns.clear();
+
+  fFinalState = undefined;
+  fSelectionLevel = Undefined;
 
   // Empty leptons
-  std::vector<Lepton*>::iterator it;
-  for ( it = leptons.begin(); it != leptons.end(); ) {
-    delete * it;  
-    it = leptons.erase(it);
+  vector<Lepton*>::iterator lIt;
+  for (lIt = fLeptons.begin(); lIt != fLeptons.end(); ) {
+    delete *lIt;  
+    lIt = fLeptons.erase(lIt);
   }
 
-  for (vector<Lepton*>::iterator lIt = leptonsNew.begin(); lIt != leptonsNew.end(); ) {
-    delete *lIt;
-    lIt = leptonsNew.erase(lIt);
-  }
-
-  nEleTightTwiki = 0;
-  nMuTightTwiki = 0;
-  nZCand = 0;
-  massZCand.clear();
+  fTightLeptonsIndex.clear();
+  fZLeptonsIndex = make_pair(9999, 9999);
+  fWLeptonIndex = 9999;
 }
 
+
 void WZEvent::ReadEvent()
-{ // If you want to fill some own variables, do it here...
+{
+  Clear();
 
-  Cleanup();
-
+  if (HLT50ns) {
+    const vector<unsigned int> hlt50nsBits { 16, 10, 11, 36, 37, 38, 39, 35 };
+    for (vector<unsigned int>::const_iterator bIt = hlt50nsBits.begin();
+         bIt != hlt50nsBits.end(); ++bIt) {
+      (HLT50ns>>(*bIt)&1)  ?  fHLT50ns.push_back(true)  :  fHLT50ns.push_back(false);
+    }
+  }
+/*
+  if (HLTEleMuX) {
+    const vector<unsigned int> hlt25nsBits { 8, 20, 21, 41, 42, 9, 43, 44, 28 };
+        for (vector<unsigned int>::const_iterator bIt = hlt25nsBits.begin();
+         bIt != hlt25nsBits.end(); ++bIt) {
+      (HLTEleMuX>>(*bIt)&1)  ?  fHLT25ns.push_back(true)  :  fHLT25ns.push_back(false);
+    }
+  }
+*/
   // Electrons
-  for (unsigned int iele = 0; iele < eleCharge->size(); iele++) {
-    Electron* ele = new Electron(iele,
-				 (*elePt)[iele],
-				 (*eleEta)[iele],
-				 (*elePhi)[iele],
-				 (*eleCharge)[iele]);
-    
-    leptons.push_back( ele);
+  for (unsigned int indexEle = 0; indexEle < eleCharge->size(); indexEle++) {
+    Electron* ele = new Electron(indexEle, elePt->at(indexEle), eleEta->at(indexEle),
+                                 elePhi->at(indexEle), eleCharge->at(indexEle));
+    fLeptons.push_back(ele);
   }
 
   // Muons
-  for (unsigned int imu = 0; imu < muCharge->size(); imu++) {
-    leptons.push_back( new Muon(imu,
-     			    (*muPt)[imu],
-     			    (*muEta)[imu],
-     			    (*muPhi)[imu],
-     			    (*muCharge)[imu]));
+  for (unsigned int indexMu = 0; indexMu < muCharge->size(); indexMu++) {
+    Muon* mu = new Muon(indexMu, muPt->at(indexMu), muEta->at(indexMu),
+                        muPhi->at(indexMu), muCharge->at(indexMu));
+    fLeptons.push_back(mu);
   }
-
-  // Electrons - Sasa
-  unsigned int nE = nEle;
-  if (nE != eleCharge->size()) {
-    std::cout << "nEle != vector<Ele>.size() !!!" << std::endl;
-  } else {
-    for (int inE = 0; inE < nEle; inE++) {
-      Electron* ele = new Electron(inE, elePt->at(inE), eleEta->at(inE),
-                                   elePhi->at(inE), eleCharge->at(inE));
-      leptonsNew.push_back(ele);
-    }
-  }
-
-  // Muons - Sasa
-  unsigned int nM = nMu;
-  if (nM != muCharge->size()) {
-    std::cout << "nMu != vector<Mu>.size() !!!" << std::endl;
-  } else {
-    for (int inMu = 0; inMu < nMu; inMu++) {
-      Muon* mu = new Muon(inMu, muPt->at(inMu), muEta->at(inMu), muPhi->at(inMu), muCharge->at(inMu));
-      leptonsNew.push_back(mu);
-    }
-  }
-
 }
 
 
-bool WZEvent::passesSelection()
+bool WZEvent::PassesPreselection()
 {
+  if (fSelectionLevel < Preselection)  fTightLeptonsIndex.clear();
+  else  return true;
+
   bool passed = false;
+  fSelectionLevel = FailsPreselection;
 
-  if (!(nEle + nMu < 3)) {
-    selection_level = passesThreeLeptonFilter;
-  } else {
-    selection_level = failsThreeLeptonFilter;
+  if((nEle + nMu) < 3)  return passed;
+
+  unsigned int nEleTight = 0;
+  unsigned int nMuTight = 0;
+
+  for (vector<Lepton*>::iterator lIt = fLeptons.begin(); lIt != fLeptons.end(); ++lIt) {
+    if ((*lIt)->PassesPtMinCut() && (*lIt)->PassesEtaMaxCut() && (*lIt)->IsLooseTight().second) {
+      unsigned int index = distance(fLeptons.begin(), lIt);
+      fTightLeptonsIndex.push_back(index);
+      if ((*lIt)->GetPdgId() == 11)       nEleTight++;
+      else if ((*lIt)->GetPdgId() == 13)  nMuTight++;
+    }
+  }
+
+  if (nMuTight + nEleTight != fTightLeptonsIndex.size()) {
+    cout << "ERROR: Number of Tight leptons DIFFERS from number of Tight lepton indices !!!" << endl;
+    cout << nMuTight << " + " << nEleTight << " != " << fTightLeptonsIndex.size() << endl;
     return passed;
   }
 
-//  HLT triggers part missing
+// ### put the condition on number of tight leptons here!!! ###
+  if (fTightLeptonsIndex.size() == N_TIGHTLEPTONS)  passed = true;
 
-
-// Preselection
-
-  std::vector<unsigned int> indexTightLeptons;
-
-  std::vector<Lepton*>::iterator lIt;
-  unsigned int i;
-  for (lIt = leptonsNew.begin(), i = 0; lIt != leptonsNew.end(); ++lIt, i++) {
-    if ((*lIt)->IsTightTwiki()) {
-//      index = std::distance(leptonsNew.begin(), lIt);
-      indexTightLeptons.push_back(i);
-      if ((*lIt)->GetPdgId() == 11) {
-        nEleTightTwiki++;
-      }
-      else if ((*lIt)->GetPdgId() == 13) {
-        nMuTightTwiki++;
-      }
-    }
+  if (passed) {
+    fSelectionLevel = Preselection;
+    if      (nEleTight == 3 && nMuTight == 0)  fFinalState = eee;
+    else if (nEleTight == 2 && nMuTight == 1)  fFinalState = eem;
+    else if (nEleTight == 1 && nMuTight == 2)  fFinalState = mme;
+    else if (nEleTight == 0 && nMuTight == 3)  fFinalState = mmm;
   }
 
-  if (nMuTightTwiki + nEleTightTwiki != indexTightLeptons.size()) {
-    std::cout << "ERROR: nTight != vector<indexTight>.size() !!!" << std::endl;
-    return passed;
-  }
+  return passed;
+}
 
-  if (nMuTightTwiki + nEleTightTwiki == indexTightLeptons.size() &&
-      nMuTightTwiki + nEleTightTwiki == 3) {
-    selection_level = passesPreselection;
-    if (nMuTightTwiki == 0 && nEleTightTwiki == 3) {
-      final_state = eee;
-    }
-    if (nMuTightTwiki == 1 && nEleTightTwiki == 2) {
-      final_state = eem;
-    }
-    if (nMuTightTwiki == 2 && nEleTightTwiki == 1) {
-      final_state = mme;
-    }
-    if (nMuTightTwiki == 3 && nEleTightTwiki == 0) {
-      final_state = mmm;
-    }
-  } else {
-    return passed;
-  }
 
-// Z Selection
-// massZCand window [60, 120] and leading lepton Pt > 20 GeV
+bool WZEvent::PassesZSelection()
+{
+  if (!(fSelectionLevel < ZSelection))  return true;
 
-  const double mZMin = 60.;
-  const double mZMax = 120.;
-  std::vector<pair<unsigned int, unsigned int> > indexZCand;
-  const double mZ = 91.1876;
+  bool passed = false;
+  if (!PassesPreselection())  return passed;
 
-  for (unsigned int ind1 = 0; ind1 < indexTightLeptons.size(); ind1++) {
-    for (unsigned int ind2 = ind1+1; ind2 < indexTightLeptons.size(); ind2++) {
-      unsigned int indL1 = indexTightLeptons.at(ind1);
-      unsigned int indL2 = indexTightLeptons.at(ind2);
+  vector<pair<unsigned int, unsigned int> > iZl;
+  vector<double> dMassZ;
 
-      if (abs(leptonsNew.at(indL1)->GetPdgId()) != abs(leptonsNew.at(indL2)->GetPdgId()) ||
-          leptonsNew.at(indL1)->GetCharge() == leptonsNew.at(indL2)->GetCharge()) {
+  for (vector<unsigned int>::const_iterator iIt1 = fTightLeptonsIndex.begin();
+       iIt1 != fTightLeptonsIndex.end(); ++iIt1) {
+    for (vector<unsigned int>::const_iterator iIt2 = fTightLeptonsIndex.begin()+1;
+         iIt2 != fTightLeptonsIndex.end(); ++iIt2) {
+      unsigned int il1 = *iIt1;
+      unsigned int il2 = *iIt2;
+
+      if (abs(fLeptons.at(il1)->GetPdgId()) != abs(fLeptons.at(il2)->GetPdgId()) ||
+          fLeptons.at(il1)->GetCharge() == fLeptons.at(il2)->GetCharge())
         continue;
-      }
 
-      const double mZCand = (*(leptonsNew.at(indL1)) + *(leptonsNew.at(indL2))).M();
-      if (mZCand < mZMin || mZCand > mZMax ||
-          !(TMath::Max(leptonsNew.at(indL1)->Pt(), leptonsNew.at(indL2)->Pt()) > 20.)) {
+      const double mZCand = (*(fLeptons.at(il1)) + *(fLeptons.at(il2))).M();
+      if (mZCand < MZ_MIN || mZCand > MZ_MAX ||
+          !(max(fLeptons.at(il1)->Pt(), fLeptons.at(il2)->Pt()) > ZLEADINGLEPTON_PTMIN))
         continue;
-      } else {
-        nZCand++;
-        massZCand.push_back(mZCand);
-        indexZCand.push_back(make_pair(indL1, indL2));
-        selection_level = passesZSelection;
-      }
-
-    }
-  }
-
-  if (nZCand != massZCand.size()) {
-    std::cout << "ERROR: Number of Z candidates != vector<massZCand>.size() !!!" << std::endl;
-    return passed;
-  }
-
-  if (nZCand > 2) {
-    std::cout << "ERROR: More than 2 Z candidates in an event - go back to coding !!!" << std::endl;
-    return passed;
-  }
-
-  if (nZCand == 0) {
-    return passed;
-  }
-
-  unsigned int indexZl1, indexZl2;
-  if (nZCand == 1) {
-    indexZl1 = (indexZCand.at(0)).first;
-    indexZl2 = (indexZCand.at(0)).second;
-  }
-
-  if (nZCand == 2) {
-    if (fabs(massZCand.at(0) - mZ) < fabs(massZCand.at(1) - mZ)) {
-      indexZl1 = (indexZCand.at(0)).first;
-      indexZl2 = (indexZCand.at(0)).second;
-    } else {
-      indexZl1 = (indexZCand.at(1)).first;
-      indexZl2 = (indexZCand.at(1)).second;
-    }
-  }
-
-// W selection
-
-  unsigned int indexWl;
-  for (unsigned int iWl = 0; iWl < indexTightLeptons.size(); iWl++) {
-    unsigned int tempIndexWl = indexTightLeptons.at(iWl);
-    if (tempIndexWl != indexZl1 && tempIndexWl != indexZl2) {
-      indexWl = tempIndexWl;
-      if (leptonsNew.at(indexWl)->Pt() > 20. && pfMET > 30. &&
-          leptonsNew.at(indexWl)->DeltaR(*(leptonsNew.at(indexZl1))) > 0.1 &&
-          leptonsNew.at(indexWl)->DeltaR(*(leptonsNew.at(indexZl2))) > 0.1) {
+      else {
         passed = true;
-        selection_level = passesWSelection;
-      } else {
-      return passed;
+        iZl.push_back(make_pair(il1, il2));
+        const double dMZ = abs(mZCand - PDG_ZMASS);
+        dMassZ.push_back(dMZ);
       }
+    }
+  }
+
+  if (iZl.size() == 0)  return false;
+  else {
+    vector<double>::iterator bestMin = min_element(dMassZ.begin(), dMassZ.end());
+    unsigned int iMin = distance(dMassZ.begin(), bestMin);
+    fZLeptonsIndex = iZl.at(iMin);
+  }
+
+  if (fZLeptonsIndex.first != fZLeptonsIndex.second) {
+    if (fLeptons.at(fZLeptonsIndex.first)->Pt() < fLeptons.at(fZLeptonsIndex.second)->Pt())
+      swap(fZLeptonsIndex.first, fZLeptonsIndex.second);
+  }
+
+  if (passed)  fSelectionLevel = ZSelection;
+
+  return passed;
+}
+
+
+bool WZEvent::PassesWSelection()
+{
+  if (!(fSelectionLevel < WSelection))  return true;
+
+  bool passed = false;
+  if (!PassesPreselection() || !PassesZSelection())  return passed;
+
+  vector<unsigned int> iWl;
+  vector<double> ptWl;
+
+  for (vector<unsigned int>::const_iterator iIt = fTightLeptonsIndex.begin();
+       iIt != fTightLeptonsIndex.end(); ++iIt) {
+    if (*iIt != fZLeptonsIndex.first && *iIt != fZLeptonsIndex.second) {
+      const double wlPt = fLeptons.at(*iIt)->Pt();
+      const double deltaR1 = fLeptons.at(*iIt)->DeltaR(*(fLeptons.at(fZLeptonsIndex.first)));
+      const double deltaR2 = fLeptons.at(*iIt)->DeltaR(*(fLeptons.at(fZLeptonsIndex.second)));
+
+      if (wlPt > WLEPTON_PTMIN && deltaR1 > WZ_DELTARMIN && deltaR2 > WZ_DELTARMIN) {
+        passed = true;
+        iWl.push_back(*iIt);
+        ptWl.push_back(wlPt);
+      } else continue;
+    }
+  }
+
+  if (iWl.size() > 1)  cout << "WARNING: More than 1 W lepton - highest Pt criterium !!!" << endl;
+
+  if (iWl.size() == 0)  return false;
+  else {
+    vector<double>::iterator bestMax = max_element(ptWl.begin(), ptWl.end());
+    unsigned int iMax = distance(ptWl.begin(), bestMax);
+    fWLeptonIndex = iWl.at(iMax);
+  }
+
+  if (passed)  fSelectionLevel = WSelection;
+
+  return passed;
+}
+
+
+bool WZEvent::PassesFullSelection()
+{
+  if (!(fSelectionLevel < FullSelection))  return true;
+
+  bool passed = false;
+  if (!PassesPreselection() || !PassesZSelection() || !PassesWSelection())  return passed;
+
+  if (pfMET > METMIN &&
+      fZLeptonsIndex.first != fZLeptonsIndex.second &&
+      fZLeptonsIndex.first != fWLeptonIndex)
+    passed = true;
+
+  if (passed) {
+    fSelectionLevel = FullSelection;
+    unsigned int zFlavor = abs(fLeptons.at(fZLeptonsIndex.first)->GetPdgId());
+    unsigned int wFlavor = abs(fLeptons.at(fWLeptonIndex)->GetPdgId());
+
+    if (zFlavor == 11) {
+      if      (wFlavor == 11)  fFinalState = eee;
+      else if (wFlavor == 13)  fFinalState = eem;
+    } else if (zFlavor == 13) {
+      if      (wFlavor == 11)  fFinalState = mme;
+      else if (wFlavor == 13)  fFinalState = mmm;
     }
   }
 
@@ -235,176 +238,23 @@ bool WZEvent::passesSelection()
 }
 
 
-bool WZEvent::passesFullSelection()
+void WZEvent::DumpEvent(ostream& out, int verbosity)
 {
+  out << run << "\t" << event;
 
-  std::vector<int> tightLeptons;
+  vector<unsigned int> indexWZLeptons =
+  { fZLeptonsIndex.first, fZLeptonsIndex.second, fWLeptonIndex };
 
-  // Do we have exactly 3 tight leptons
-  for (unsigned int ilep=0; ilep<leptons.size(); ilep++ ) {
-    
-    if (leptons[ilep]->IsTight()
-	&& leptons[ilep]->Pt() > 10.) {
-      tightLeptons.push_back(ilep);
-    }
-
-  }
-
-  if (tightLeptons.size() != 3)
-    return false;
-
-  // Look for Z candidates
-
-  int izlep1 = -1;
-  int izlep2 = -1;
-  int iwlep = -1;
-
-  float dzmin = 1000.;
-
-  //
-  // Still 
-  // 
-
-  for (unsigned int id1=0; id1 < tightLeptons.size(); id1++ ) {
-    for (unsigned int id2=id1+1; id2 < tightLeptons.size(); id2++ ) {
-      // Same flavor, opposite charge
-      int ilep1 = tightLeptons[id1];
-      int ilep2 = tightLeptons[id2];
-
-      // Same flavor?
-      if ( abs(leptons[ilep1]->GetPdgId()) != abs(leptons[ilep2]->GetPdgId()) )
-        continue;
-
-      // Opposite Charge?
-      if ( leptons[ilep1]->GetCharge()*leptons[ilep2]->GetCharge() > 0) 
-	continue;
-
-      // 
-      if ( leptons[ilep1]->Pt()<10. || leptons[ilep2]->Pt()<10.) continue;
-      if( leptons[ilep1]->Pt()<20. && leptons[ilep2]->Pt()<20.) continue;
-
-      float mcand = (*(leptons[ilep1]) + *(leptons[ilep2])).M();
-      float dmass = fabs(mcand - 91.1876);
-      if ( mcand > 60. && mcand<120.
-	   && dmass < dzmin ) {
-      	dzmin = dmass;
-      	izlep1 = ilep1;
-      	izlep2 = ilep2;
+  if (verbosity > 1) {
+    for (vector<unsigned int>::iterator iIt = indexWZLeptons.begin();
+         iIt != indexWZLeptons.end(); ++iIt) {
+      if (*iIt < fLeptons.size()) {
+        out << " Lepton : " << distance(indexWZLeptons.begin(), iIt)
+            << " Pt = " << fLeptons.at(*iIt)->Pt()
+            << " Eta = " << fLeptons.at(*iIt)->Eta();
       }
     }
   }
 
-  if (izlep1<0 || izlep2<0) return false;
-
-
-  // MISSING: Pt cuts on W & Z leptons
-  // Opposite charge requirements
-
-  // Third lepton 
-
-  float ptlw = -10.;
-  int nwlcand = 0;
-  for (int id=0; id<tightLeptons.size(); id++ ) {
-    int ilep = tightLeptons[id];
-    if (ilep != izlep1 && ilep != izlep2) {
-      float ptl = leptons[ilep]->Pt();
-      if (ptl > 20.) {
-	nwlcand++;
-	if (ptl > ptlw) {
-	  ptlw = ptl;
-	  iwlep = ilep;
-	}
-      }
-    }
-  }
-
-
-  if (nwlcand > 1) {
-    std::cout << "SHOULD NOT BE: More than one W candidate lepton : Tight leptons : ";
-    for (int k=0; k<tightLeptons.size(); k++ ) { 
-      std::cout << tightLeptons[k] << " ";
-    }
-    std::cout << "\t Z leps: " << izlep1 << " " << izlep2
-	      << "\t W lep: " << iwlep 
-	      << "\t DMZ = " << dzmin << std::endl;
-  }
-
-
-  if (izlep1 < 0 || izlep2 < 0 || iwlep < 0)
-    return false;
-
-
-
-  // DR cut between Z and W leptons
-
-  bool passesDRCut = false;
-
-  if ( (*(leptons[izlep1])).DeltaR( (*(leptons[iwlep]))) > 0.1
-       &&  (*(leptons[izlep2])).DeltaR( (*(leptons[iwlep]))) > 0.1 ) {
-    passesDRCut = true;
-  } 
-
-  bool passesMET = false;
-
-
-  // MET cut
-  if (pfMET > 30) passesMET = true;
-
-  if (! (passesMET && passesDRCut) ) return false;
-
-
-  // Which final state is it
-
-  int zflavor = abs(leptons[izlep1]->GetPdgId());
-  int wflavor = abs(leptons[iwlep]->GetPdgId());
-
-  if (zflavor == 11) {
-    if (wflavor == 11) {
-      final_state = eee;
-    }  else  if (wflavor == 13) {
-      final_state = eem;
-    }
-  } else  if (zflavor == 13) {
-    if (wflavor == 11) {
-      final_state = mme;
-    }  else  if (wflavor == 13) {
-      final_state = mmm;
-    }
-  }
-
-  zLeptonsIndex[0] = izlep1;
-  zLeptonsIndex[1] = izlep1;
-  wLeptonIndex     = iwlep;
-
-
-  return true;
-
-
-}
-
-
-
-void WZEvent::DumpEvent(std::ostream & out, int verbosity) {
-
-  out << run << "\t" 
-      << event ;
-
-  int leptonIndices[3] = { zLeptonsIndex[0],
-			   zLeptonsIndex[1],
-			   wLeptonIndex };
-  //
-  if (verbosity>1) {
-    for (int i=0; i<3; i++) {
-      if (leptonIndices[i]>=0 
-	  && leptonIndices[i]<leptons.size()) {
-	int index = leptonIndices[i];
-	out << " Lepton : " << i
-	    << " Pt = " << leptons[index]->Pt()
-	    << " Eta = " << leptons[index]->Eta();
-      }
-    }
-  }
-
-  out << std::endl;
-
+  out << endl;
 }
