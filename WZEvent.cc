@@ -75,8 +75,8 @@ void WZEvent::ReadEvent()
 
 bool WZEvent::PassesPreselection()
 {
-  if (fSelectionLevel < Preselection)  fTightLeptonsIndex.clear();
-  else  return true;
+  if      (!(fSelectionLevel < Preselection))     return true;
+  else if (fSelectionLevel == FailsPreselection)  return false;
 
   bool passed = false;
   fSelectionLevel = FailsPreselection;

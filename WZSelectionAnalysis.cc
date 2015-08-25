@@ -32,7 +32,7 @@ void WZSelectionAnalysis::Init()
   // Setup selected event lists 
   for (int i=0; i<4; i++) {
     ostringstream fileName;
-    fileName << "selectedEvents_" << i+1;
+    fileName << "passedEvents_" << i+1;
     cout << "file name : " << fileName.str() << endl;
     eventLists[i].open(fileName.str().c_str());
   }
