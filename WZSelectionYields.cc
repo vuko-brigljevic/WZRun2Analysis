@@ -46,8 +46,8 @@ void WZSelectionYields::EventAnalysis()
   if (fWZEvent->PassesZSelection())     yieldsByChannelZSelection[fWZEvent->GetFinalState()-1]++;
   if (fWZEvent->PassesPreselection())   yieldsByChannelPreselection[fWZEvent->GetFinalState()-1]++;
 
-  if (!(fWZEvent->PassesFullSelection))  return;
-  nSelected++;
+  if (!(fWZEvent->PassesFullSelection()))  return;
+  nSelectedEvents++;
 
   fWZEvent->DumpEvent(eventLists[fWZEvent->GetFinalState()-1], 1);
 }
@@ -55,7 +55,7 @@ void WZSelectionYields::EventAnalysis()
 
 void WZSelectionYields::Finish()
 {
-  cout << "CHANNEL \t|\t Preselection \t|\t Z Selection \t|\t W Selection \t|\t Full Selection" << "\n";
+  cout << "CHANNEL\t Preselection\t Z Selection\t W Selection\t Full Selection" << "\n";
   for (int i = 1; i <= 4; i++) {
     cout << i << "\t|\t" << yieldsByChannelPreselection[i-1]
               << "\t|\t" << yieldsByChannelZSelection[i-1]

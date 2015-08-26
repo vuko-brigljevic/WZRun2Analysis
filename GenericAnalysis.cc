@@ -20,11 +20,11 @@ TH1D* GenericAnalysis::bookTH1D(TString key, TString title, unsigned int nbins, 
 }
 
 
-TH2D * GenericAnalysis::bookTH2D(TString key, TString title,
-                                 unsigned int nbinsx , double xmin, double xmax,
-                                 unsigned int nbinsy , double ymin, double ymax)
+TH2D* GenericAnalysis::bookTH2D(TString key, TString title,
+                                 unsigned int nbinsx, double xmin, double xmax,
+                                 unsigned int nbinsy, double ymin, double ymax)
 {
-  TH2D* h = new TH2D(key, title, nbinsx , xmin, xmax, nbinsy , ymin, ymax);
+  TH2D* h = new TH2D(key, title, nbinsx, xmin, xmax, nbinsy, ymin, ymax);
   fListOfHistos.push_back(h);
   return h;
 }
@@ -51,4 +51,3 @@ GenericAnalysis::~GenericAnalysis()
     }
   }
 }
-

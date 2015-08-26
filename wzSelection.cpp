@@ -31,17 +31,17 @@ int main(int argc, char **argv)
       case 'o':
         gotOutput = true;
         outputFileName = new char[strlen(optarg)+1];
-        strcpy(outputFileName,optarg);
+        strcpy(outputFileName, optarg);
         break;
       case 'i':
         gotInput = true;
         inputFileName = new char[strlen(optarg)+1];
-        strcpy(inputFileName,optarg);
+        strcpy(inputFileName, optarg);
         break;
       case 'l':
         useInputList = true;
         fileList = new char[strlen(optarg)+1];
-        strcpy(fileList,optarg);
+        strcpy(fileList, optarg);
         break;
       default:
         cout << "usage: [-k|-g|-l] [-v] [-b <binWidth>]   -i <input> -o <output> \n";
@@ -51,7 +51,7 @@ int main(int argc, char **argv)
   // OUTPUT ROOT FILE
 
   TFile* fout;
-  if (gotOutput)  fout = new TFile(outputFileName, "RECREATE");    
+  if (gotOutput)  fout = new TFile(outputFileName, "RECREATE");
   else            fout = new TFile("default_test.root", "RECREATE");
 
   TH1D* hMet = new TH1D ("hMet", "Missing Et", 100, 0., 200.);
@@ -86,8 +86,6 @@ int main(int argc, char **argv)
 
   WZSelectionYields* yields = new WZSelectionYields(cWZ, fout);
   yields->Init();
-
-  unsigned int nSelected = 0;
 
   // Event loop
  
