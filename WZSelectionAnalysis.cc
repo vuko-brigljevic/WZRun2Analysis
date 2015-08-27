@@ -1,7 +1,5 @@
 #include "WZSelectionAnalysis.h"
 
-#include <iostream>
-#include <fstream>
 #include <sstream>
 
 //#include "TPythia6.h"

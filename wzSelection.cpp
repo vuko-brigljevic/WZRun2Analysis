@@ -1,15 +1,7 @@
 #define DEBUG  false
 
-#include "TFile.h"
-#include "TTree.h"
-#include "TChain.h"
-#include "TH1D.h"
-
-#include "WZEvent.h"
 #include "WZSelectionYields.h"
 
-#include <iostream>
-#include <fstream>
 #include <string>
 
 
@@ -54,9 +46,6 @@ int main(int argc, char **argv)
   if (gotOutput)  fout = new TFile(outputFileName, "RECREATE");
   else            fout = new TFile("default_test.root", "RECREATE");
 
-  TH1D* hMet = new TH1D ("hMet", "Missing Et", 100, 0., 200.);
-//  TH1D* hMassZCand = new TH1D ("hMassZCand", "Z Candidate Mass", 80, 50., 130.);
-
   // INPUT TREES
 
   vector<TString> inputName;
@@ -95,41 +84,22 @@ int main(int argc, char **argv)
     cerr <<  "  " << int(100 * 100 * (k+1.) / events + 0.5) / 100. << " %            \r" << flush;
     nEvents++;
 
-    if ( !(k % 100000) )  cout << "Processed " << k << " events \n";
+//    if ( !(k % 100000) )  cout << "Processed " << k << " events \n";
 
     wz_tTree->GetEntry(k);
     cWZ->ReadEvent();
 
-    hMet->Fill(cWZ->pfMET);
-
     yields->EventAnalysis();
   }
-  cerr << "  100%" << endl;
+  cerr << "  100%" << endl << endl;
 
   cout << "Events : " << nEvents << "\n"
        << "Analyzed = " << yields->GetNAnalyzed() << "\t"
        << "Selected = " << yields->GetNSelected() << endl << endl;
 
   yields->Finish();
-
-  fout->cd();
-  hMet->Write();
+  delete yields;
 
   fout->Close();
 }
 
-/*
-    const double massZCand = (*(cWZ->fLeptons.at(fZLeptonsIndex.first)) +
-                              *(cWZ->fLeptons.at(fZLeptonsIndex.second)).M();
-    hMassZCand->Fill(massZcand);
-  }
-*/
-
-
-//    hNZCand->Fill(cWZ->nZCand);
-//    if (cWZ->nZCand) {
-//      nZSelectedCheck++;
-//      for (unsigned int i = cWZ->nZCand-1; i < cWZ->massZCand.size(); i++) {
-//        hMassZCand->Fill(cWZ->massZCand.at(i));
-//      }
-//    }

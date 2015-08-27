@@ -1,8 +1,6 @@
 #include "GenericAnalysis.h"
 
 #include <ios>
-#include <iostream>
-#include <fstream>
 
 
 GenericAnalysis::GenericAnalysis(WZEvent* wzevt, TFile* fout)
@@ -46,8 +44,8 @@ GenericAnalysis::~GenericAnalysis()
 {
   if (outputRootFile) {
     outputRootFile->cd();
-    for (unsigned int i = 0; i < fListOfHistos.size(); i++ ) {
-      fListOfHistos[i]->Write();
+    for (unsigned int i = 0; i < fListOfHistos.size(); i++) {
+      fListOfHistos.at(i)->Write();
     }
   }
 }

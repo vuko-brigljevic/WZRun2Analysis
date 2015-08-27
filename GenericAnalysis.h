@@ -2,9 +2,10 @@
 #define GenericAnalysis_h
 
 #include "WZEvent.h"
+#include "TH1D.h"
+#include "TH2D.h"
 
 #include <fstream>
-#include <vector>
 
 
 class GenericAnalysis
@@ -17,8 +18,6 @@ public:
 
   virtual void Init();
   virtual void EventAnalysis();
-
-  //  virtual void Finish(TFile * fout =0);
 
   TH1D* bookTH1D(TString key, TString title, unsigned int nbins, double min, double max);
   TH2D* bookTH2D(TString key, TString title,

@@ -39,3 +39,7 @@
 #define METMIN  30.
 
 
+// ### Jets ###
+
+#define JET_PTMIN  30.
+#define JET_ETAMAX  2.5

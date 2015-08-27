@@ -1,8 +1,5 @@
 #include "WZEvent.h"
 #include "Constants.h"
-#include "TLorentzVector.h"
-
-#include <iostream>
 
 
 using namespace std;
@@ -32,8 +29,8 @@ void WZEvent::Clear()
   }
 
   fTightLeptonsIndex.clear();
-  fZLeptonsIndex = make_pair(9999, 9999);
-  fWLeptonIndex = 9999;
+  fZLeptonsIndex = make_pair(999, 999);
+  fWLeptonIndex = 999;
 }
 
 
@@ -235,6 +232,15 @@ bool WZEvent::PassesFullSelection()
   }
 
   return passed;
+}
+
+
+pair<Lepton*, Lepton*> WZEvent::GetZLeptons()
+{
+  Lepton* zL1 = fLeptons.at(fZLeptonsIndex.first);
+  Lepton* zL2 = fLeptons.at(fZLeptonsIndex.second);
+  pair<Lepton*, Lepton*> zL = make_pair(zL1, zL2);
+  return zL;
 }
 
 

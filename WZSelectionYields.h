@@ -24,13 +24,25 @@ public:
 protected:
 
   unsigned int nAnalyzedEvents;
-	unsigned int nSelectedEvents;
-  unsigned int yieldsByChannelPreselection[4];
-  unsigned int yieldsByChannelZSelection[4];
-  unsigned int yieldsByChannelWSelection[4];
-  unsigned int yieldsByChannelFullSelection[4];
+  unsigned int nSelectedEvents;
+  unsigned int yieldsByChannelPreselection[5];
+  unsigned int yieldsByChannelZSelection[5];
+  unsigned int yieldsByChannelWSelection[5];
+  unsigned int yieldsByChannelFullSelection[5];
 
   std::ofstream eventLists[4];
+
+  TH1D* hZmass[5];
+  TH1D* hZpt[5];
+  TH1D* hMET[5];
+  TH1D* hMt[5];
+  TH1D* hMETWMt[5];
+  TH1D* hMETMt[5];
+  TH1D* hWMt[5];
+  TH1D* hZl1pt[5];
+  TH1D* hZl2pt[5];
+  TH1D* hWlpt[5];
+  TH1D* hNJets[5];
 
 };
 
