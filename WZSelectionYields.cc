@@ -31,12 +31,6 @@ void WZSelectionYields::Init()
                        "Missing Et", 100, 0, 200);
     hMt[i] = bookTH1D(("hMt_" + boost::lexical_cast<string>(i)).c_str(),
                        "Mt", 100, 0, 200);
-    hMETWMt[i] = bookTH1D(("hMETWMt_" + boost::lexical_cast<string>(i)).c_str(),
-                      "MET+W Mt", 100, 0, 200);
-    hMETMt[i] = bookTH1D(("hMETMt_" + boost::lexical_cast<string>(i)).c_str(),
-                       "MET Mt", 100, 0, 200);
-    hWMt[i] = bookTH1D(("hWMt_" + boost::lexical_cast<string>(i)).c_str(),
-                        "W Mt", 100, 0, 200);
     hZl1pt[i] = bookTH1D(("hZl1pt_" + boost::lexical_cast<string>(i)).c_str(),
                          "Z Lepton1 pt", 100, 0, 200);
     hZl2pt[i] = bookTH1D(("hZl2pt_" + boost::lexical_cast<string>(i)).c_str(),
@@ -57,7 +51,7 @@ void WZSelectionYields::Init()
   // Setup selected event lists 
   for (int i = 1; i <= 4; i++) {
     ostringstream outputFileName;
-    outputFileName << "output/yields/selectedEvents_" << i << "_testNew2.txt";
+    outputFileName << "output/yields/selectedEvents_" << i << "_test70.txt";
     cout << "File name : " << outputFileName.str() << endl;
     eventLists[i-1].open(outputFileName.str().c_str());
   }
@@ -90,49 +84,64 @@ void WZSelectionYields::EventAnalysis()
   nSelectedEvents++;
   const double massZ = (*(fWZEvent->GetZLeptons().first) + *(fWZEvent->GetZLeptons().second)).M();
   const double ptZ = (*(fWZEvent->GetZLeptons().first) + *(fWZEvent->GetZLeptons().second)).Pt();
+  const double ptZl1 = fWZEvent->GetZLeptons().first->Pt();
+  const double ptZl2 = fWZEvent->GetZLeptons().second->Pt();
+  const double ptWl = fWZEvent->GetWLepton()->Pt();
+  const double met = fWZEvent->pfMET;
+  const double phiMET= fWZEvent->pfMETPhi;
+  const double pxMET = met * cos(phiMET);
+  const double pyMET = met * sin(phiMET);
+  TLorentzVector lMET(pxMET, pyMET, 0., met);
+  const double mt = sqrt(2 * met * ptWl * (1 - cos(fWZEvent->GetWLepton()->DeltaPhi(lMET))));
 
-  const double pxMET = fWZEvent->pfMET * cos(fWZEvent->pfMETPhi);
-  const double pyMET = fWZEvent->pfMET * sin(fWZEvent->pfMETPhi);
-  TLorentzVector lMET(pxMET, pyMET, 0., fWZEvent->pfMET);
-  TLorentzVector lMET1;
-  lMET1.SetPtEtaPhiM(fWZEvent->pfMET, 0, fWZEvent->pfMETPhi, 0);
-  const double mtMETW = (lMET + *(fWZEvent->GetWLepton())).Mt();
-  const double mtMET = lMET.Mt();
-  const double mtW = fWZEvent->GetWLepton()->Mt();
-  
-  const double mt = sqrt(2 * fWZEvent->pfMET * fWZEvent->GetWLepton()->Pt() *
-                             (1 - cos(fWZEvent->GetWLepton()->DeltaPhi(lMET))));
-
+// Counting accompanying jets
   unsigned int nSelectedJets = 0;
   for (unsigned int i = 0; i < fWZEvent->jetPt->size(); i++) {
-    if ((fWZEvent->jetPt->at(i) > JET_PTMIN) &&
-        (abs(fWZEvent->jetEta->at(i)) < JET_ETAMAX) &&
-        (fWZEvent->jetNConstituents->at(i) > 10))
+
+    if (!(fWZEvent->jetNHF->at(i) < 0.99) || !(fWZEvent->jetNEF->at(i) < 0.99) ||
+        !(fWZEvent->jetCEF->at(i) < 0.99) || !(fWZEvent->jetNConstituents->at(i) > 1) ||
+        fWZEvent->jetCHF->at(i) == 0 || fWZEvent->jetNCH->at(i) == 0)
+      continue;
+
+    const double ptJet = fWZEvent->jetPt->at(i);
+    const double etaJet = fWZEvent->jetEta->at(i);
+    if (!(ptJet > JET_PTMIN) || !(abs(etaJet) < JET_ETAMAX))  continue;
+
+    const double phiJet = fWZEvent->jetPhi->at(i);
+//    const double eJet = fWZEvent->jetEn->at(i);
+    TLorentzVector lJet;
+    lJet.SetPtEtaPhiM(ptJet, etaJet, phiJet, 0);
+    const double deltaRJetWl = fWZEvent->GetWLepton()->DeltaR(lJet);
+    const double deltaRJetZl1 = fWZEvent->GetZLeptons().first->DeltaR(lJet);
+    const double deltaRJetZl2 = fWZEvent->GetZLeptons().second->DeltaR(lJet);
+    if (fWZEvent->GetFinalState() == 4)  nSelectedJets++;
+    else if (fWZEvent->GetFinalState() == 3 && deltaRJetWl > ELEJET_DELTARMIN)
       nSelectedJets++;
+    else if (fWZEvent->GetFinalState() == 2 && 
+             deltaRJetZl1 > ELEJET_DELTARMIN && deltaRJetZl2 > ELEJET_DELTARMIN)
+      nSelectedJets++;
+    else if (fWZEvent->GetFinalState() == 1 && deltaRJetWl > ELEJET_DELTARMIN &&
+             deltaRJetZl1 > ELEJET_DELTARMIN && deltaRJetZl2 > ELEJET_DELTARMIN)
+      nSelectedJets++;
+    else  continue;
   }
 
   hZmass[4]->Fill(massZ);
   hZpt[4]->Fill(ptZ);
-  hMET[4]->Fill(fWZEvent->pfMET);
+  hMET[4]->Fill(met);
   hMt[4]->Fill(mt);
-  hMETWMt[4]->Fill(mtMETW);
-  hMETMt[4]->Fill(mtMET);
-  hWMt[4]->Fill(mtW);
-  hZl1pt[4]->Fill(fWZEvent->GetZLeptons().first->Pt());
-  hZl2pt[4]->Fill(fWZEvent->GetZLeptons().second->Pt());
-  hWlpt[4]->Fill(fWZEvent->GetWLepton()->Pt());
+  hZl1pt[4]->Fill(ptZl1);
+  hZl2pt[4]->Fill(ptZl2);
+  hWlpt[4]->Fill(ptWl);
   hNJets[4]->Fill(nSelectedJets);
 
   hZmass[fWZEvent->GetFinalState()-1]->Fill(massZ);
   hZpt[fWZEvent->GetFinalState()-1]->Fill(ptZ);
-  hMET[fWZEvent->GetFinalState()-1]->Fill(fWZEvent->pfMET);
+  hMET[fWZEvent->GetFinalState()-1]->Fill(met);
   hMt[fWZEvent->GetFinalState()-1]->Fill(mt);
-  hMETWMt[fWZEvent->GetFinalState()-1]->Fill(mtMETW);
-  hMETMt[fWZEvent->GetFinalState()-1]->Fill(mtMET);
-  hWMt[fWZEvent->GetFinalState()-1]->Fill(mtW);
-  hZl1pt[fWZEvent->GetFinalState()-1]->Fill((fWZEvent->GetZLeptons().first)->Pt());
-  hZl2pt[fWZEvent->GetFinalState()-1]->Fill((fWZEvent->GetZLeptons().second)->Pt());
-  hWlpt[fWZEvent->GetFinalState()-1]->Fill((fWZEvent->GetWLepton())->Pt());
+  hZl1pt[fWZEvent->GetFinalState()-1]->Fill(ptZl1);
+  hZl2pt[fWZEvent->GetFinalState()-1]->Fill(ptZl2);
+  hWlpt[fWZEvent->GetFinalState()-1]->Fill(ptWl);
   hNJets[fWZEvent->GetFinalState()-1]->Fill(nSelectedJets);
 
   fWZEvent->DumpEvent(eventLists[fWZEvent->GetFinalState()-1], 1);
@@ -150,4 +159,3 @@ void WZSelectionYields::Finish()
   }
   cout << endl;
 }
-

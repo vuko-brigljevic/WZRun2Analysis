@@ -36,9 +36,6 @@ protected:
   TH1D* hZpt[5];
   TH1D* hMET[5];
   TH1D* hMt[5];
-  TH1D* hMETWMt[5];
-  TH1D* hMETMt[5];
-  TH1D* hWMt[5];
   TH1D* hZl1pt[5];
   TH1D* hZl2pt[5];
   TH1D* hWlpt[5];

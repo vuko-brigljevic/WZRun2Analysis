@@ -43,3 +43,4 @@
 
 #define JET_PTMIN  30.
 #define JET_ETAMAX  2.5
+#define ELEJET_DELTARMIN  0.1
