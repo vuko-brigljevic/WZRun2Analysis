@@ -18,6 +18,8 @@ public:
   int GetIndex() { return fIndex; };
 
   virtual std::pair<bool, bool> IsLooseTight() = 0;
+  virtual std::pair<bool, bool> IsLooseTightCutBased25ns() = 0;
+  virtual std::pair<bool, bool> IsLooseTightCutBased50ns() = 0;
   virtual bool PassesPtMinCut() = 0;
   virtual bool PassesEtaMaxCut() = 0;
 
@@ -42,8 +44,16 @@ public:
 
   Electron(unsigned int index, double pt, double eta, double phi, double charge);
   std::pair<bool, bool> IsLooseTight();
+  std::pair<bool, bool> IsLooseTightCutBased25ns();
+  std::pair<bool, bool> IsLooseTightCutBased50ns();
   bool PassesPtMinCut();
   bool PassesEtaMaxCut();
+
+
+protected:
+
+  double EffA25ns(double absEleSCEta);
+  double EffA50ns(double absEleSCEta);
 
 };
 
@@ -55,6 +65,8 @@ public:
 
   Muon(unsigned int index, double pt, double eta, double phi, double charge);
   std::pair<bool, bool> IsLooseTight();
+  std::pair<bool, bool> IsLooseTightCutBased25ns();
+  std::pair<bool, bool> IsLooseTightCutBased50ns();
   bool PassesPtMinCut();
   bool PassesEtaMaxCut();
 

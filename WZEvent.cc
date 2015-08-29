@@ -84,7 +84,8 @@ bool WZEvent::PassesPreselection()
   unsigned int nMuTight = 0;
 
   for (vector<Lepton*>::iterator lIt = fLeptons.begin(); lIt != fLeptons.end(); ++lIt) {
-    if ((*lIt)->PassesPtMinCut() && (*lIt)->PassesEtaMaxCut() && (*lIt)->IsLooseTight().second) {
+    if ((*lIt)->PassesPtMinCut() && (*lIt)->PassesEtaMaxCut() &&
+        (*lIt)->IsLooseTight().second) {
       unsigned int index = distance(fLeptons.begin(), lIt);
       fTightLeptonsIndex.push_back(index);
       if ((*lIt)->GetPdgId() == 11)       nEleTight++;
@@ -246,7 +247,7 @@ pair<Lepton*, Lepton*> WZEvent::GetZLeptons()
 
 void WZEvent::DumpEvent(ostream& out, int verbosity)
 {
-  out << run << "\t" << event;
+  out << run << ":" << lumis << ":" << event;
 
   vector<unsigned int> indexWZLeptons =
   { fZLeptonsIndex.first, fZLeptonsIndex.second, fWLeptonIndex };

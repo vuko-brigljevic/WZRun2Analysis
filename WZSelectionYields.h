@@ -40,6 +40,9 @@ protected:
   TH1D* hZl2pt[5];
   TH1D* hWlpt[5];
   TH1D* hNJets[5];
+  TH1D* hNJetsNoMuIso[5];
+  TH1D* hNJetsNoEleIso[5];
+  TH1D* hNJetsNoIso[5];
 
 };
 

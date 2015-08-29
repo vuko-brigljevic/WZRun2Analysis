@@ -39,6 +39,12 @@ void WZSelectionYields::Init()
                         "W Lepton pt", 100, 0, 200);
     hNJets[i] = bookTH1D(("hNJets_" + boost::lexical_cast<string>(i)).c_str(),
                          "No. Jets", 11, -0.5, 10.5);
+    hNJetsNoMuIso[i] = bookTH1D(("hNJetsNoMuIso_" + boost::lexical_cast<string>(i)).c_str(),
+                                "No. Jets", 11, -0.5, 10.5);
+    hNJetsNoEleIso[i] = bookTH1D(("hNJetsNoEleIso_" + boost::lexical_cast<string>(i)).c_str(),
+                                 "No. Jets", 11, -0.5, 10.5);
+    hNJetsNoIso[i] = bookTH1D(("hNJetsNoIso_" + boost::lexical_cast<string>(i)).c_str(),
+                              "No. Jets", 11, -0.5, 10.5);
   }
 
   for (int i = 0; i <= 4; i++) {
@@ -51,7 +57,7 @@ void WZSelectionYields::Init()
   // Setup selected event lists 
   for (int i = 1; i <= 4; i++) {
     ostringstream outputFileName;
-    outputFileName << "output/yields/selectedEvents_" << i << "_test70.txt";
+    outputFileName << "output/yields/selectedEvents_" << i << "_oldEleID.txt";
     cout << "File name : " << outputFileName.str() << endl;
     eventLists[i-1].open(outputFileName.str().c_str());
   }
@@ -94,8 +100,21 @@ void WZSelectionYields::EventAnalysis()
   TLorentzVector lMET(pxMET, pyMET, 0., met);
   const double mt = sqrt(2 * met * ptWl * (1 - cos(fWZEvent->GetWLepton()->DeltaPhi(lMET))));
 
+  /*
+  if (fWZEvent->event == 568975 && fWZEvent->lumis == 2846)
+    cout << "Event: " << fWZEvent->event << ", lumi section: " << fWZEvent->lumis << "\n"
+         << "State: " << fWZEvent->GetFinalState()
+         << ", Selection Level: " << fWZEvent->GetSelectionLevel() << "\n"
+         << "Z mass: " << massZ << ", Z pt: " << ptZ << "\n"
+         << "Zl1 pt: " << ptZl1 << ", Zl2 pt: " << ptZl2 << endl << endl;
+  */
+
+
 // Counting accompanying jets
   unsigned int nSelectedJets = 0;
+  unsigned int nSelectedJetsNoMuIso = 0;
+  unsigned int nSelectedJetsNoEleIso = 0;
+  unsigned int nSelectedJetsNoIso = 0;
   for (unsigned int i = 0; i < fWZEvent->jetPt->size(); i++) {
 
     if (!(fWZEvent->jetNHF->at(i) < 0.99) || !(fWZEvent->jetNEF->at(i) < 0.99) ||
@@ -107,6 +126,7 @@ void WZSelectionYields::EventAnalysis()
     const double etaJet = fWZEvent->jetEta->at(i);
     if (!(ptJet > JET_PTMIN) || !(abs(etaJet) < JET_ETAMAX))  continue;
 
+    nSelectedJetsNoIso++;
     const double phiJet = fWZEvent->jetPhi->at(i);
 //    const double eJet = fWZEvent->jetEn->at(i);
     TLorentzVector lJet;
@@ -114,15 +134,33 @@ void WZSelectionYields::EventAnalysis()
     const double deltaRJetWl = fWZEvent->GetWLepton()->DeltaR(lJet);
     const double deltaRJetZl1 = fWZEvent->GetZLeptons().first->DeltaR(lJet);
     const double deltaRJetZl2 = fWZEvent->GetZLeptons().second->DeltaR(lJet);
-    if (fWZEvent->GetFinalState() == 4)  nSelectedJets++;
-    else if (fWZEvent->GetFinalState() == 3 && deltaRJetWl > ELEJET_DELTARMIN)
+
+    if (deltaRJetWl > LEPTONJET_DELTARMIN &&
+        deltaRJetZl1 > LEPTONJET_DELTARMIN && deltaRJetZl2 > LEPTONJET_DELTARMIN)
       nSelectedJets++;
-    else if (fWZEvent->GetFinalState() == 2 && 
-             deltaRJetZl1 > ELEJET_DELTARMIN && deltaRJetZl2 > ELEJET_DELTARMIN)
-      nSelectedJets++;
-    else if (fWZEvent->GetFinalState() == 1 && deltaRJetWl > ELEJET_DELTARMIN &&
-             deltaRJetZl1 > ELEJET_DELTARMIN && deltaRJetZl2 > ELEJET_DELTARMIN)
-      nSelectedJets++;
+
+    if (fWZEvent->GetFinalState() == mmm) {
+      nSelectedJetsNoMuIso++;
+      if (deltaRJetWl > ELEJET_DELTARMIN &&
+          deltaRJetZl1 > ELEJET_DELTARMIN && deltaRJetZl2 > ELEJET_DELTARMIN)
+        nSelectedJetsNoEleIso++;
+    }
+    else if (fWZEvent->GetFinalState() == mme) {
+      if (deltaRJetWl > ELEJET_DELTARMIN)  nSelectedJetsNoMuIso++;
+      else if (deltaRJetZl1 > ELEJET_DELTARMIN && deltaRJetZl2 > ELEJET_DELTARMIN)
+        nSelectedJetsNoEleIso++;
+    }
+    else if (fWZEvent->GetFinalState() == eem) {
+      if (deltaRJetWl > ELEJET_DELTARMIN)  nSelectedJetsNoEleIso++;
+      else if (deltaRJetZl1 > ELEJET_DELTARMIN && deltaRJetZl2 > ELEJET_DELTARMIN)
+        nSelectedJetsNoMuIso++;
+    }
+    else if (fWZEvent->GetFinalState() == eee) {
+      nSelectedJetsNoEleIso++;
+      if (deltaRJetWl > ELEJET_DELTARMIN &&
+          deltaRJetZl1 > ELEJET_DELTARMIN && deltaRJetZl2 > ELEJET_DELTARMIN)
+        nSelectedJetsNoMuIso++;
+    }
     else  continue;
   }
 
@@ -134,6 +172,9 @@ void WZSelectionYields::EventAnalysis()
   hZl2pt[4]->Fill(ptZl2);
   hWlpt[4]->Fill(ptWl);
   hNJets[4]->Fill(nSelectedJets);
+  hNJetsNoMuIso[4]->Fill(nSelectedJetsNoMuIso);
+  hNJetsNoEleIso[4]->Fill(nSelectedJetsNoEleIso);
+  hNJetsNoIso[4]->Fill(nSelectedJetsNoIso);
 
   hZmass[fWZEvent->GetFinalState()-1]->Fill(massZ);
   hZpt[fWZEvent->GetFinalState()-1]->Fill(ptZ);
@@ -143,6 +184,9 @@ void WZSelectionYields::EventAnalysis()
   hZl2pt[fWZEvent->GetFinalState()-1]->Fill(ptZl2);
   hWlpt[fWZEvent->GetFinalState()-1]->Fill(ptWl);
   hNJets[fWZEvent->GetFinalState()-1]->Fill(nSelectedJets);
+  hNJetsNoMuIso[fWZEvent->GetFinalState()-1]->Fill(nSelectedJetsNoMuIso);
+  hNJetsNoEleIso[fWZEvent->GetFinalState()-1]->Fill(nSelectedJetsNoEleIso);
+  hNJetsNoIso[fWZEvent->GetFinalState()-1]->Fill(nSelectedJetsNoIso);
 
   fWZEvent->DumpEvent(eventLists[fWZEvent->GetFinalState()-1], 1);
 }
