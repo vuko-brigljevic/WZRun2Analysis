@@ -1,6 +1,8 @@
 #define DEBUG  false
 
 #include "WZSelectionYields.h"
+#include "WZJetStudy.h"
+#include "MyStyle.h"
 
 #include <string>
 
@@ -72,15 +74,19 @@ int main(int argc, char **argv)
   Int_t events = wz_tTree->GetEntries();
 
   cout << endl << "Total number of events: " << events << endl << endl;
-
+  /*
   WZSelectionYields* yields = new WZSelectionYields(cWZ, fout);
   yields->Init();
+  */
+  const MyStyle rootStyle(800, 1);
+  WZJetStudy* jets = new WZJetStudy(cWZ, fout);
+  jets->Init();
 
   // Event loop
  
   unsigned int nEvents = 0;
 
-  for  (Int_t k = 0; k < events /* && k < 200000 */; k++) {
+  for  (Int_t k = 0; k < events /*&& k < 200000*/; k++) {
     cerr <<  "  " << int(100 * 100 * (k+1.) / events + 0.5) / 100. << " %            \r" << flush;
     nEvents++;
 
@@ -89,16 +95,18 @@ int main(int argc, char **argv)
     wz_tTree->GetEntry(k);
     cWZ->ReadEvent();
 
-    yields->EventAnalysis();
+//    yields->EventAnalysis();
+    jets->EventAnalysis();
   }
   cerr << "  100%" << endl << endl;
 
   cout << "Events : " << nEvents << "\n"
-       << "Analyzed = " << yields->GetNAnalyzed() << "\t"
-       << "Selected = " << yields->GetNSelected() << endl << endl;
+       << "Analyzed = " << jets->GetNAnalyzed() << "\n"
+       << "Selected events (jets && tight leptons) = " << jets->GetNSelected() << "\n"
+       << "Total number of Good Jets: " << jets->GetNGoodJets() << endl << endl;
 
-  yields->Finish();
-  delete yields;
+  jets->Finish();
+  delete jets;
 
   fout->Close();
 }

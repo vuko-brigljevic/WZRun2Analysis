@@ -37,6 +37,8 @@ enum SelectionLevel
 class WZEvent : public WZBASECLASS
 {
 
+  friend class WZJetStudy;
+
 public:
 
   WZEvent(TTree* tree);

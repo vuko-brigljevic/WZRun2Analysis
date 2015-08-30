@@ -38,7 +38,7 @@ all: $(EXES)
 
 wzAnalysis: wzAnalysis.o WZEvent.o EventTree.o Leptons.o GenericAnalysis.o WZSelectionAnalysis.o
 
-wzSelection: wzSelection.o EventTree.o WZEvent.o Leptons.o GenericAnalysis.o WZSelectionYields.o
+wzSelection: wzSelection.o EventTree.o WZEvent.o Leptons.o GenericAnalysis.o WZSelectionYields.o WZJetStudy.o
 
 
 clean:
