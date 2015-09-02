@@ -32,6 +32,10 @@ protected:
 
   std::ofstream eventLists[4];
 
+  TH1D* hEoverPinv;
+  TH1D* hEoverPinvAll;
+//  TH1D* hooEmooP;
+
   TH1D* hZmass[5];
   TH1D* hZpt[5];
   TH1D* hMET[5];

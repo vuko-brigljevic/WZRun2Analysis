@@ -22,6 +22,10 @@ void WZSelectionYields::Init()
   nAnalyzedEvents = 0;
   nSelectedEvents = 0;
 
+  hEoverPinv = bookTH1D("hEoverPinv", "ming", 100, -0.01, 0.01);
+  hEoverPinvAll = bookTH1D("hEoverPinvAll", "mingAll", 200, -0.1, 0.1);
+//  hooEmooP = bookTH1D("hooEmooP", "krav", 100, -0.5, 0.5);
+
   for (unsigned int i = 0; i <= 4; i++) {
     hZmass[i] = bookTH1D(("hZmass_" + boost::lexical_cast<string>(i)).c_str(),
                          "Z mass", 64, 58, 122);
@@ -85,6 +89,51 @@ void WZSelectionYields::EventAnalysis()
     yieldsByChannelPreselection[4]++;
   }
 
+  for (vector<Lepton*>::const_iterator lIt = fWZEvent->fLeptons.begin();
+       lIt != fWZEvent->fLeptons.end(); ++lIt) {
+    if ((*lIt)->GetPdgId() == 11)
+      hEoverPinvAll->Fill((*lIt)->fEoverPinv);
+  }
+
+  unsigned int nDiff1 = 0;
+  unsigned int nDiff2 = 0;
+  unsigned int nDiffTot = 0;
+  if (fWZEvent->PassesPreselection()) {
+    for (vector<unsigned int>::const_iterator iIt = fWZEvent->fTightLeptonsIndex.begin();
+         iIt != fWZEvent->fTightLeptonsIndex.end(); ++iIt) {
+      if (fWZEvent->fLeptons.at(*iIt)->IsLooseTight().second !=
+          fWZEvent->fLeptons.at(*iIt)->IsLooseTightCutBased25ns().second
+          &&
+          fWZEvent->GetFinalState() == eee) {
+        nDiffTot++;
+        hEoverPinv->Fill(fWZEvent->fLeptons.at(*iIt)->fEoverPinv);
+      }
+    }
+    for (vector<Lepton*>::const_iterator lIt = fWZEvent->fLeptons.begin();
+         lIt != fWZEvent->fLeptons.end(); ++lIt) {
+      if ((*lIt)->IsLooseTight().second != (*lIt)->IsLooseTightCutBased25ns().second &&
+          fWZEvent->GetFinalState() == eee)
+        (*lIt)->IsLooseTightCutBased25ns().second  ? nDiff1++ : nDiff2++;
+    }
+  }
+  if (nDiffTot)
+    cout << endl << "Total difference: " << nDiffTot << "\n"
+         << "VID Medium: " << nDiff2 << "\nCut Based Medium: " << nDiff1 << "\n"
+         << fWZEvent->run << ":" << fWZEvent->lumis << ":" << fWZEvent->event << endl << endl;
+        
+        
+        /*
+        if(fWZEvent->fLeptons.at(*iIt)->ecalEnergy() == 0 ){
+              printf("Electron energy is zero!\n");
+              ooEmooP_.push_back( 1e30 );
+            }else if( !std::isfinite(el->ecalEnergy())){
+              printf("Electron energy is not finite!\n");
+              ooEmooP_.push_back( 1e30 );
+            }else{
+              ooEmooP_.push_back( fabs(1.0/el->ecalEnergy() - el->eSuperClusterOverP()/el->ecalEnergy() ) );
+            }
+      */
+        
 
 
 //  Devin:

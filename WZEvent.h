@@ -1,9 +1,9 @@
 #ifndef WZEvent_h
 #define WZEvent_h
 
-#define WZBASECLASS EventTree_ggNtuplizer_V07_04_09_00
+#define WZBASECLASS EventTree_ggNtuplizer_V07_04_09_01
 
-#include "EventTree_ggNtuplizer_V07_04_09_00.h"
+#include "EventTree_ggNtuplizer_V07_04_09_01.h"
 #include "Leptons.h"
 
 #include "TH1F.h"

@@ -12,6 +12,10 @@ class Lepton : public TLorentzVector
 
 public:
 
+
+  double fEoverPinv;
+
+
   Lepton(unsigned int ind, double pt, double eta, double phi, double ch);
   int GetPdgId() { return fPdgId; }
   double GetCharge() { return fCharge; }
@@ -52,8 +56,8 @@ public:
 
 protected:
 
-  double EffA25ns(double absEleSCEta);
-  double EffA50ns(double absEleSCEta);
+  double EffA25ns();
+  double EffA50ns();
 
 };
 

@@ -45,7 +45,7 @@ void WZEvent::ReadEvent()
       (HLT50ns>>(*bIt)&1)  ?  fHLT50ns.push_back(true)  :  fHLT50ns.push_back(false);
     }
   }
-/*
+
   if (HLTEleMuX) {
     const vector<unsigned int> hlt25nsBits { 8, 20, 21, 41, 42, 9, 43, 44, 28 };
         for (vector<unsigned int>::const_iterator bIt = hlt25nsBits.begin();
@@ -53,7 +53,7 @@ void WZEvent::ReadEvent()
       (HLTEleMuX>>(*bIt)&1)  ?  fHLT25ns.push_back(true)  :  fHLT25ns.push_back(false);
     }
   }
-*/
+
   // Electrons
   for (unsigned int indexEle = 0; indexEle < eleCharge->size(); indexEle++) {
     Electron* ele = new Electron(indexEle, elePt->at(indexEle), eleEta->at(indexEle),

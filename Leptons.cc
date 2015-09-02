@@ -30,9 +30,10 @@ Electron::Electron(unsigned int index, double pt, double eta, double phi, double
 }
 
 
-double Electron::EffA25ns(double absEleSCEta)
+double Electron::EffA25ns()
 {
   double effA = 0;
+  const double absEleSCEta = abs(fWZTree->eleSCEta->at(fIndex));
 
 // Check Slide 4 in https://indico.cern.ch/event/370507/contribution/1/attachments/1140657/1633761/Rami_eleCB_ID_25ns.pdf
 // and Slide 12 in https://indico.cern.ch/event/369239/contribution/4/attachments/1134761/1623262/talk_effective_areas_25ns.pdf
@@ -49,9 +50,11 @@ double Electron::EffA25ns(double absEleSCEta)
 }
 
 
-double Electron::EffA50ns(double absEleSCEta)
+double Electron::EffA50ns()
 {
   double effA = 0;
+  const double absEleSCEta = abs(fWZTree->eleSCEta->at(fIndex));
+
 // check Slide 4 in https://indico.cern.ch/event/369239/contribution/6/attachments/1134836/1623383/Rami_eleCB_ID_50ns.pdf
 // and Slide 8 in https://indico.cern.ch/event/369235/contribution/4/attachments/734635/1007867/Rami_EffAreas.pdf
 // and Line 407 for abs(EleSCEta) in https://github.com/ikrav/EgammaWork/blob/ntupler_and_VID_demos_747/ElectronNtupler/plugins/SimpleElectronNtupler.cc
@@ -95,13 +98,29 @@ pair<bool, bool> Electron::IsLooseTightCutBased25ns()
   if (fWZTree->nEle == 0)  return id;
 
   const double absEleSCEta = abs(fWZTree->eleSCEta->at(fIndex));
+  const double effA = EffA25ns();
 
 // Check Slide 2 in https://indico.cern.ch/event/369239/contribution/4/attachments/1134761/1623262/talk_effective_areas_25ns.pdf
 // relIsoWithEA = 1/pt * (pfIso.sumChargedHadronPt +
 //                        max(0.0, pfIso.sumNeutralHadronEt + pfIso.sumPhotonEt - rho * EffArea)
   const double relIsoWithEA = (fWZTree->elePFChIso->at(fIndex) +
-    max(fWZTree->elePFPhoIso->at(fIndex) - ((fWZTree->rho) * EffA25ns(absEleSCEta)) +
-        fWZTree->elePFNeuIso->at(fIndex), 0.0)) / Pt();
+    max(0.0, fWZTree->elePFPhoIso->at(fIndex) - fWZTree->rho * effA +
+             fWZTree->elePFNeuIso->at(fIndex))) / Pt();
+
+  fEoverPinv = fWZTree->eleEoverPInv->at(fIndex);
+
+  /*
+  if( el->ecalEnergy() == 0 ){
+        printf("Electron energy is zero!\n");
+        ooEmooP_.push_back( 1e30 );
+      }else if( !std::isfinite(el->ecalEnergy())){
+        printf("Electron energy is not finite!\n");
+        ooEmooP_.push_back( 1e30 );
+      }else{
+        ooEmooP_.push_back( fabs(1.0/el->ecalEnergy() - el->eSuperClusterOverP()/el->ecalEnergy() ) );
+      }
+*/
+
 
   if (absEleSCEta <= ETASCBARREL) {
     if (fWZTree->eleSigmaIEtaIEtaFull5x5->at(fIndex) < FULL5x5_SIGMAIETAIETA_BARREL_LOOSE_25ns &&
@@ -173,13 +192,13 @@ pair<bool, bool> Electron::IsLooseTightCutBased50ns()
   if (!(fWZTree->nEle))  return id;
 
   const double absEleSCEta = abs(fWZTree->eleSCEta->at(fIndex));
-
+  const double effA = EffA50ns();
 // Check Slide 8 in https://indico.cern.ch/event/369235/contribution/4/attachments/734635/1007867/Rami_EffAreas.pdf
 // relIsoWithEA = 1/pt * (pfIso.sumChargedHadronPt +
 //                       max(0.0, pfIso.sumNeutralHadronEt + pfIso.sumPhotonEt - rho * EffArea)
   const double relIsoWithEA = (fWZTree->elePFChIso->at(fIndex) +
-    max(fWZTree->elePFPhoIso->at(fIndex) - fWZTree->rho * EffA50ns(absEleSCEta) +
-        fWZTree->elePFNeuIso->at(fIndex), 0.0)) / Pt();
+    max(0.0, fWZTree->elePFPhoIso->at(fIndex) - fWZTree->rho * effA +
+             fWZTree->elePFNeuIso->at(fIndex))) / Pt();
 
   if (!(absEleSCEta > ETASCBARREL)) {
     if (fWZTree->eleSigmaIEtaIEtaFull5x5->at(fIndex) < FULL5x5_SIGMAIETAIETA_BARREL_LOOSE_50ns &&
