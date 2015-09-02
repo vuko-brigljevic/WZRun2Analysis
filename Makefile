@@ -36,9 +36,9 @@ endef
 
 all: $(EXES)
 
-wzAnalysis: wzAnalysis.o WZEvent.o EventTree.o Leptons.o GenericAnalysis.o WZSelectionAnalysis.o
+wzAnalysis: wzAnalysis.o WZEvent.o EventTree_ggNtuplizer_V07_04_05_04.o EventTree_ggNtuplizer_V07_04_09_00.o Leptons.o GenericAnalysis.o WZSelectionAnalysis.o
 
-wzSelection: wzSelection.o EventTree.o WZEvent.o Leptons.o GenericAnalysis.o WZSelectionYields.o WZJetStudy.o
+wzSelection: wzSelection.o EventTree_ggNtuplizer_V07_04_05_04.o EventTree_ggNtuplizer_V07_04_09_00.o WZEvent.o Leptons.o GenericAnalysis.o WZSelectionYields.o WZJetStudy.o
 
 
 clean:

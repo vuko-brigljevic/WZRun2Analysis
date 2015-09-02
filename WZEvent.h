@@ -1,9 +1,9 @@
 #ifndef WZEvent_h
 #define WZEvent_h
 
-#define WZBASECLASS EventTree
+#define WZBASECLASS EventTree_ggNtuplizer_V07_04_09_00
 
-#include "EventTree.h"
+#include "EventTree_ggNtuplizer_V07_04_09_00.h"
 #include "Leptons.h"
 
 #include "TH1F.h"
@@ -37,6 +37,7 @@ enum SelectionLevel
 class WZEvent : public WZBASECLASS
 {
 
+  friend class WZSelectionYields;
   friend class WZJetStudy;
 
 public:

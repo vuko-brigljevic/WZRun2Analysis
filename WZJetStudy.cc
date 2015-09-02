@@ -2,11 +2,6 @@
 #include "Constants.h"
 #include "TLatex.h"
 
-#include <cmath>
-#include <sstream>
-#include <string>
-#include <boost/lexical_cast.hpp>
-
 
 using namespace std;
 
@@ -62,19 +57,19 @@ void WZJetStudy::EventAnalysis()
   unsigned int nJEle = 0;
   vector<TLorentzVector> jets;
   for (unsigned int i = 0; i < fWZEvent->jetPt->size(); i++) {
-    if (!(fWZEvent->jetNHF->at(i) < 0.99) || !(fWZEvent->jetNEF->at(i) < 0.99) ||
+/*    if (!(fWZEvent->jetNHF->at(i) < 0.99) || !(fWZEvent->jetNEF->at(i) < 0.99) ||
         !(fWZEvent->jetCEF->at(i) < 0.99) || !(fWZEvent->jetNConstituents->at(i) > 1) ||
         fWZEvent->jetCHF->at(i) == 0 || fWZEvent->jetNCH->at(i) == 0)
-      continue;
+      continue; */
     const double ptJet = fWZEvent->jetPt->at(i);
     const double etaJet = fWZEvent->jetEta->at(i);
     if (!(ptJet > JET_PTMIN) || !(abs(etaJet) < JET_ETAMAX))  continue;
     nJ++;
     if (fWZEvent->fTightLeptonsIndex.size() == 0)  continue;
     const double phiJet = fWZEvent->jetPhi->at(i);
-//    const double eJet = fWZEvent->jetEn->at(i);
+    const double eJet = fWZEvent->jetEn->at(i); // present only in V07-04-09+, use M=0 instead
     TLorentzVector lJet;
-    lJet.SetPtEtaPhiM(ptJet, etaJet, phiJet, 0);
+    lJet.SetPtEtaPhiE(ptJet, etaJet, phiJet, eJet);
     jets.push_back(lJet);
 
     bool hasMu = false;

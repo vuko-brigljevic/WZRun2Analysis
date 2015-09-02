@@ -72,13 +72,12 @@ int main(int argc, char **argv)
   TTree* wz_tTree = (TTree*)& wz;
   WZEvent* cWZ= new WZEvent(wz_tTree);
   Int_t events = wz_tTree->GetEntries();
-
   cout << endl << "Total number of events: " << events << endl << endl;
-  /*
+  const MyStyle rootStyle(800, 1);
+
   WZSelectionYields* yields = new WZSelectionYields(cWZ, fout);
   yields->Init();
-  */
-  const MyStyle rootStyle(800, 1);
+
   WZJetStudy* jets = new WZJetStudy(cWZ, fout);
   jets->Init();
 
@@ -95,7 +94,7 @@ int main(int argc, char **argv)
     wz_tTree->GetEntry(k);
     cWZ->ReadEvent();
 
-//    yields->EventAnalysis();
+    yields->EventAnalysis();
     jets->EventAnalysis();
   }
   cerr << "  100%" << endl << endl;
@@ -105,6 +104,9 @@ int main(int argc, char **argv)
        << "Selected events (jets && tight leptons) = " << jets->GetNSelected() << "\n"
        << "Total number of Good Jets: " << jets->GetNGoodJets() << endl << endl;
 
+  yields->Finish();
+  delete yields;
+  
   jets->Finish();
   delete jets;
 

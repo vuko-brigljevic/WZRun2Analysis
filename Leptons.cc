@@ -32,29 +32,36 @@ Electron::Electron(unsigned int index, double pt, double eta, double phi, double
 
 double Electron::EffA25ns(double absEleSCEta)
 {
+  double effA = 0;
+
 // Check Slide 4 in https://indico.cern.ch/event/370507/contribution/1/attachments/1140657/1633761/Rami_eleCB_ID_25ns.pdf
 // and Slide 12 in https://indico.cern.ch/event/369239/contribution/4/attachments/1134761/1623262/talk_effective_areas_25ns.pdf
 // and Line 407 for abs(eleSCEta) in https://github.com/ikrav/EgammaWork/blob/ntupler_and_VID_demos_747/ElectronNtupler/plugins/SimpleElectronNtupler.cc
-  if      (absEleSCEta <= 1.0)                         return 0.1752;
-  else if (absEleSCEta > 1.0 && absEleSCEta <= 1.479)  return 0.1862;
-  else if (absEleSCEta > 1.479 && absEleSCEta <= 2.0)  return 0.1411;
-  else if (absEleSCEta > 2.0 && absEleSCEta <= 2.2)    return 0.1534;
-  else if (absEleSCEta > 2.2 && absEleSCEta <= 2.3)    return 0.1903;
-  else if (absEleSCEta > 2.3 && absEleSCEta <= 2.4)    return 0.2243;
-  else /*if (absEleSCEta > 2.4 && absEleSCEta <= 2.5)*/    return 0.2687;
+  if (absEleSCEta >= 0.0 && absEleSCEta < 1.0)    effA = 0.1752;
+  if (absEleSCEta >= 1.0 && absEleSCEta < 1.479)  effA = 0.1862;
+  if (absEleSCEta >= 1.479 && absEleSCEta < 2.0)  effA = 0.1411;
+  if (absEleSCEta >= 2.0 && absEleSCEta < 2.2)    effA = 0.1534;
+  if (absEleSCEta >= 2.2 && absEleSCEta < 2.3)    effA = 0.1903;
+  if (absEleSCEta >= 2.3 && absEleSCEta < 2.4)    effA = 0.2243;
+  if (absEleSCEta >= 2.4 && absEleSCEta < 2.5)    effA = 0.2687;
+
+  return effA;
 }
 
 
 double Electron::EffA50ns(double absEleSCEta)
 {
+  double effA = 0;
 // check Slide 4 in https://indico.cern.ch/event/369239/contribution/6/attachments/1134836/1623383/Rami_eleCB_ID_50ns.pdf
 // and Slide 8 in https://indico.cern.ch/event/369235/contribution/4/attachments/734635/1007867/Rami_EffAreas.pdf
 // and Line 407 for abs(EleSCEta) in https://github.com/ikrav/EgammaWork/blob/ntupler_and_VID_demos_747/ElectronNtupler/plugins/SimpleElectronNtupler.cc
-  if      (absEleSCEta <= 0.8)                       return 0.0973;
-  else if (absEleSCEta > 0.8 && absEleSCEta <= 1.3)  return 0.0954;
-  else if (absEleSCEta > 1.3 && absEleSCEta <= 2.0)  return 0.0632;
-  else if (absEleSCEta > 2.0 && absEleSCEta <= 2.2)  return 0.0727;
-  else /*if (absEleSCEta > 2.2 && absEleSCEta <= 2.5)*/  return 0.1337;
+  if      (absEleSCEta >= 0.0 && absEleSCEta < 0.8)  effA = 0.0973;
+  else if (absEleSCEta >= 0.8 && absEleSCEta < 1.3)  effA = 0.0954;
+  else if (absEleSCEta >= 1.3 && absEleSCEta < 2.0)  effA = 0.0632;
+  else if (absEleSCEta >= 2.0 && absEleSCEta < 2.2)  effA = 0.0727;
+  else if (absEleSCEta >= 2.2 && absEleSCEta < 2.5)  effA = 0.1337;
+
+  return effA;
 }
 
 
@@ -67,10 +74,9 @@ pair<bool, bool> Electron::IsLooseTight()
     return id;
   }
 
-  if (!(fWZTree->nEle))  return id;
+  if (fWZTree->nEle == 0)  return id;
 
-  if (fWZTree->eleIDbit->at(fIndex)>>ELELOOSE_BIT&1)  id.first = true;
-
+  if (fWZTree->eleIDbit->at(fIndex)>>ELELOOSE_BIT&1)   id.first = true;
   if (fWZTree->eleIDbit->at(fIndex)>>ELEMEDIUM_BIT&1)  id.second = true;
 
   return id;
@@ -86,7 +92,7 @@ pair<bool, bool> Electron::IsLooseTightCutBased25ns()
     return id;
   }
 
-  if (!(fWZTree->nEle))  return id;
+  if (fWZTree->nEle == 0)  return id;
 
   const double absEleSCEta = abs(fWZTree->eleSCEta->at(fIndex));
 
@@ -94,10 +100,10 @@ pair<bool, bool> Electron::IsLooseTightCutBased25ns()
 // relIsoWithEA = 1/pt * (pfIso.sumChargedHadronPt +
 //                        max(0.0, pfIso.sumNeutralHadronEt + pfIso.sumPhotonEt - rho * EffArea)
   const double relIsoWithEA = (fWZTree->elePFChIso->at(fIndex) +
-    max(fWZTree->elePFPhoIso->at(fIndex) - fWZTree->rho * EffA25ns(absEleSCEta) +
+    max(fWZTree->elePFPhoIso->at(fIndex) - ((fWZTree->rho) * EffA25ns(absEleSCEta)) +
         fWZTree->elePFNeuIso->at(fIndex), 0.0)) / Pt();
 
-  if (!(absEleSCEta > ETASCBARREL)) {
+  if (absEleSCEta <= ETASCBARREL) {
     if (fWZTree->eleSigmaIEtaIEtaFull5x5->at(fIndex) < FULL5x5_SIGMAIETAIETA_BARREL_LOOSE_25ns &&
         abs(fWZTree->eledEtaAtVtx->at(fIndex)) < DETAIN_BARREL_LOOSE_25ns &&
         abs(fWZTree->eledPhiAtVtx->at(fIndex)) < DPHIIN_BARREL_LOOSE_25ns &&
@@ -106,10 +112,11 @@ pair<bool, bool> Electron::IsLooseTightCutBased25ns()
         abs(fWZTree->eleEoverPInv->at(fIndex)) < OOEMOOP_BARREL_LOOSE_25ns &&
         abs(fWZTree->eleD0->at(fIndex)) < D0_BARREL_LOOSE_25ns &&
         abs(fWZTree->eleDz->at(fIndex)) < DZ_BARREL_LOOSE_25ns &&
-        !(fWZTree->eleMissHits->at(fIndex) > EXPMISSINNERHITS_BARREL) &&
-        fWZTree->eleConvVeto->at(fIndex) == PASSCONVERSIONVETO)
+        fWZTree->eleMissHits->at(fIndex) <= EXPMISSINNERHITS_BARREL &&
+        fWZTree->eleConvVeto->at(fIndex) == true)
       id.first = true;
-  } else if (absEleSCEta > ETASCBARREL && absEleSCEta < ETASCENDCAP) {
+  }
+  if (absEleSCEta > ETASCBARREL && absEleSCEta < ETASCENDCAP) {
     if (fWZTree->eleSigmaIEtaIEtaFull5x5->at(fIndex) < FULL5x5_SIGMAIETAIETA_ENDCAP_LOOSE_25ns &&
         abs(fWZTree->eledEtaAtVtx->at(fIndex)) < DETAIN_ENDCAP_LOOSE_25ns &&
         abs(fWZTree->eledPhiAtVtx->at(fIndex)) < DPHIIN_ENDCAP_LOOSE_25ns &&
@@ -118,12 +125,12 @@ pair<bool, bool> Electron::IsLooseTightCutBased25ns()
         abs(fWZTree->eleEoverPInv->at(fIndex)) < OOEMOOP_ENDCAP_LOOSE_25ns &&
         abs(fWZTree->eleD0->at(fIndex)) < D0_ENDCAP_LOOSE_25ns &&
         abs(fWZTree->eleDz->at(fIndex)) < DZ_ENDCAP_LOOSE_25ns &&
-        !(fWZTree->eleMissHits->at(fIndex) > EXPMISSINNERHITS_ENDCAP) &&
-        fWZTree->eleConvVeto->at(fIndex) == PASSCONVERSIONVETO)
+        fWZTree->eleMissHits->at(fIndex) <= EXPMISSINNERHITS_ENDCAP &&
+        fWZTree->eleConvVeto->at(fIndex) == true)
       id.first = true;
   }
 
-  if (!(absEleSCEta > ETASCBARREL)) {
+  if (absEleSCEta <= ETASCBARREL) {
     if (fWZTree->eleSigmaIEtaIEtaFull5x5->at(fIndex) < FULL5x5_SIGMAIETAIETA_BARREL_MEDIUM_25ns &&
         abs(fWZTree->eledEtaAtVtx->at(fIndex)) < DETAIN_BARREL_MEDIUM_25ns &&
         abs(fWZTree->eledPhiAtVtx->at(fIndex)) < DPHIIN_BARREL_MEDIUM_25ns &&
@@ -132,10 +139,11 @@ pair<bool, bool> Electron::IsLooseTightCutBased25ns()
         abs(fWZTree->eleEoverPInv->at(fIndex)) < OOEMOOP_BARREL_MEDIUM_25ns &&
         abs(fWZTree->eleD0->at(fIndex)) < D0_BARREL_MEDIUM_25ns &&
         abs(fWZTree->eleDz->at(fIndex)) < DZ_BARREL_MEDIUM_25ns &&
-        !(fWZTree->eleMissHits->at(fIndex) > EXPMISSINNERHITS_BARREL) &&
-        fWZTree->eleConvVeto->at(fIndex) == PASSCONVERSIONVETO)
+        fWZTree->eleMissHits->at(fIndex) <= EXPMISSINNERHITS_BARREL &&
+        fWZTree->eleConvVeto->at(fIndex) == true)
       id.second = true;
-  } else if (absEleSCEta > ETASCBARREL && absEleSCEta < ETASCENDCAP) {
+  }
+  if (absEleSCEta > ETASCBARREL && absEleSCEta < ETASCENDCAP) {
     if (fWZTree->eleSigmaIEtaIEtaFull5x5->at(fIndex) < FULL5x5_SIGMAIETAIETA_ENDCAP_MEDIUM_25ns &&
         abs(fWZTree->eledEtaAtVtx->at(fIndex)) < DETAIN_ENDCAP_MEDIUM_25ns &&
         abs(fWZTree->eledPhiAtVtx->at(fIndex)) < DPHIIN_ENDCAP_MEDIUM_25ns &&
@@ -144,8 +152,8 @@ pair<bool, bool> Electron::IsLooseTightCutBased25ns()
         abs(fWZTree->eleEoverPInv->at(fIndex)) < OOEMOOP_ENDCAP_MEDIUM_25ns &&
         abs(fWZTree->eleD0->at(fIndex)) < D0_ENDCAP_MEDIUM_25ns &&
         abs(fWZTree->eleDz->at(fIndex)) < DZ_ENDCAP_MEDIUM_25ns &&
-        !(fWZTree->eleMissHits->at(fIndex) > EXPMISSINNERHITS_ENDCAP) &&
-        fWZTree->eleConvVeto->at(fIndex) == PASSCONVERSIONVETO)
+        fWZTree->eleMissHits->at(fIndex) <= EXPMISSINNERHITS_ENDCAP &&
+        fWZTree->eleConvVeto->at(fIndex) == true)
       id.second = true;
   }
 

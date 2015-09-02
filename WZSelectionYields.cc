@@ -57,7 +57,7 @@ void WZSelectionYields::Init()
   // Setup selected event lists 
   for (int i = 1; i <= 4; i++) {
     ostringstream outputFileName;
-    outputFileName << "output/yields/selectedEvents_" << i << "_oldEleID.txt";
+    outputFileName << "output/yields/test_" << i << ".txt";
     cout << "File name : " << outputFileName.str() << endl;
     eventLists[i-1].open(outputFileName.str().c_str());
   }
@@ -85,6 +85,76 @@ void WZSelectionYields::EventAnalysis()
     yieldsByChannelPreselection[4]++;
   }
 
+
+
+//  Devin:
+//  I select 2 events you do not:
+//  mme: 1:8665:1732461
+//  mmm: 1:6067:1212962
+
+  /*
+  if (fWZEvent->event == 1212962 && fWZEvent->lumis == 6067) {
+    cout << endl << "Event: " << fWZEvent->event
+         << ", lumi section: " << fWZEvent->lumis << "\n"
+         << "State: " << fWZEvent->GetFinalState()
+         << ", Selection Level: " << fWZEvent->GetSelectionLevel() << "\n"
+         << "No. tight leptons: " << fWZEvent->fTightLeptonsIndex.size() << endl;
+
+    unsigned int nEle = 0;
+    unsigned int nMu = 0;
+    for (vector<unsigned int>::const_iterator iIt = fWZEvent->fTightLeptonsIndex.begin();
+         iIt != fWZEvent->fTightLeptonsIndex.end(); ++iIt) {
+      unsigned int id = fWZEvent->fLeptons.at(*iIt)->GetPdgId();
+      const double pt = fWZEvent->fLeptons.at(*iIt)->Pt();
+      const double eta = fWZEvent->fLeptons.at(*iIt)->Eta();
+      if (id == 11) {
+        nEle++;
+        cout << "Electron:\n pt = " << pt << ", eta = " << eta << endl;
+      } else if (id == 13) {
+        nMu++;
+        cout << "Muon:\n pt = " << pt << ", eta = " << eta << endl;
+      }
+    }
+//        cout << "Z mass: " << massZ << ", Z pt: " << ptZ << "\n"
+//             << "Zl1 pt: " << ptZl1 << ", Zl2 pt: " << ptZl2 << endl;
+
+    cout << endl;
+  }
+
+
+
+  if (fWZEvent->event == 1732461 && fWZEvent->lumis == 8665) {
+    cout << endl << "Event: " << fWZEvent->event
+         << ", lumi section: " << fWZEvent->lumis << "\n"
+         << "State: " << fWZEvent->GetFinalState()
+         << ", Selection Level: " << fWZEvent->GetSelectionLevel() << "\n"
+         << "No. tight leptons: " << fWZEvent->fTightLeptonsIndex.size() << endl;
+
+    unsigned int nEle = 0;
+    unsigned int nMu = 0;
+    for (vector<unsigned int>::const_iterator iIt = fWZEvent->fTightLeptonsIndex.begin();
+        iIt != fWZEvent->fTightLeptonsIndex.end(); ++iIt) {
+      unsigned int id = fWZEvent->fLeptons.at(*iIt)->GetPdgId();
+      const double pt = fWZEvent->fLeptons.at(*iIt)->Pt();
+      const double eta = fWZEvent->fLeptons.at(*iIt)->Eta();
+      if (id == 11) {
+        nEle++;
+        cout << "Electron:\n pt = " << pt << ", eta = " << eta << endl;
+      } else if (id == 13) {
+        nMu++;
+        cout << "Muon:\n pt = " << pt << ", eta = " << eta << endl;
+      }
+    }
+//        cout << "Z mass: " << massZ << ", Z pt: " << ptZ << "\n"
+//             << "Zl1 pt: " << ptZl1 << ", Zl2 pt: " << ptZl2 << endl;
+
+    cout << endl;
+  }
+
+*/
+
+
+
   if (!(fWZEvent->PassesFullSelection()))  return;
 
   nSelectedEvents++;
@@ -100,27 +170,18 @@ void WZSelectionYields::EventAnalysis()
   TLorentzVector lMET(pxMET, pyMET, 0., met);
   const double mt = sqrt(2 * met * ptWl * (1 - cos(fWZEvent->GetWLepton()->DeltaPhi(lMET))));
 
-  /*
-  if (fWZEvent->event == 568975 && fWZEvent->lumis == 2846)
-    cout << "Event: " << fWZEvent->event << ", lumi section: " << fWZEvent->lumis << "\n"
-         << "State: " << fWZEvent->GetFinalState()
-         << ", Selection Level: " << fWZEvent->GetSelectionLevel() << "\n"
-         << "Z mass: " << massZ << ", Z pt: " << ptZ << "\n"
-         << "Zl1 pt: " << ptZl1 << ", Zl2 pt: " << ptZl2 << endl << endl;
-  */
-
-
 // Counting accompanying jets
   unsigned int nSelectedJets = 0;
   unsigned int nSelectedJetsNoMuIso = 0;
   unsigned int nSelectedJetsNoEleIso = 0;
   unsigned int nSelectedJetsNoIso = 0;
   for (unsigned int i = 0; i < fWZEvent->jetPt->size(); i++) {
-
+    /*
     if (!(fWZEvent->jetNHF->at(i) < 0.99) || !(fWZEvent->jetNEF->at(i) < 0.99) ||
         !(fWZEvent->jetCEF->at(i) < 0.99) || !(fWZEvent->jetNConstituents->at(i) > 1) ||
         fWZEvent->jetCHF->at(i) == 0 || fWZEvent->jetNCH->at(i) == 0)
       continue;
+//  above jet variables were removed from ggNtuple with V07-04-09-00 */
 
     const double ptJet = fWZEvent->jetPt->at(i);
     const double etaJet = fWZEvent->jetEta->at(i);
@@ -128,9 +189,9 @@ void WZSelectionYields::EventAnalysis()
 
     nSelectedJetsNoIso++;
     const double phiJet = fWZEvent->jetPhi->at(i);
-//    const double eJet = fWZEvent->jetEn->at(i);
+    const double eJet = fWZEvent->jetEn->at(i);  // present only in V07-04-09+, use M=0 instead
     TLorentzVector lJet;
-    lJet.SetPtEtaPhiM(ptJet, etaJet, phiJet, 0);
+    lJet.SetPtEtaPhiE(ptJet, etaJet, phiJet, eJet);
     const double deltaRJetWl = fWZEvent->GetWLepton()->DeltaR(lJet);
     const double deltaRJetZl1 = fWZEvent->GetZLeptons().first->DeltaR(lJet);
     const double deltaRJetZl2 = fWZEvent->GetZLeptons().second->DeltaR(lJet);

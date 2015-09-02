@@ -85,7 +85,7 @@ bool WZEvent::PassesPreselection()
 
   for (vector<Lepton*>::iterator lIt = fLeptons.begin(); lIt != fLeptons.end(); ++lIt) {
     if ((*lIt)->PassesPtMinCut() && (*lIt)->PassesEtaMaxCut() &&
-        (*lIt)->IsLooseTight().second) {
+        (*lIt)->IsLooseTightCutBased25ns().second) {
       unsigned int index = distance(fLeptons.begin(), lIt);
       fTightLeptonsIndex.push_back(index);
       if ((*lIt)->GetPdgId() == 11)       nEleTight++;
