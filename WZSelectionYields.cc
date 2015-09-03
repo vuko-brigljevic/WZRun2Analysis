@@ -22,10 +22,6 @@ void WZSelectionYields::Init()
   nAnalyzedEvents = 0;
   nSelectedEvents = 0;
 
-  hEoverPinv = bookTH1D("hEoverPinv", "ming", 100, -0.01, 0.01);
-  hEoverPinvAll = bookTH1D("hEoverPinvAll", "mingAll", 200, -0.1, 0.1);
-//  hooEmooP = bookTH1D("hooEmooP", "krav", 100, -0.5, 0.5);
-
   for (unsigned int i = 0; i <= 4; i++) {
     hZmass[i] = bookTH1D(("hZmass_" + boost::lexical_cast<string>(i)).c_str(),
                          "Z mass", 64, 58, 122);
@@ -88,121 +84,6 @@ void WZSelectionYields::EventAnalysis()
     yieldsByChannelPreselection[fWZEvent->GetFinalState()-1]++;
     yieldsByChannelPreselection[4]++;
   }
-
-  for (vector<Lepton*>::const_iterator lIt = fWZEvent->fLeptons.begin();
-       lIt != fWZEvent->fLeptons.end(); ++lIt) {
-    if ((*lIt)->GetPdgId() == 11)
-      hEoverPinvAll->Fill((*lIt)->fEoverPinv);
-  }
-
-  unsigned int nDiff1 = 0;
-  unsigned int nDiff2 = 0;
-  unsigned int nDiffTot = 0;
-  if (fWZEvent->PassesPreselection()) {
-    for (vector<unsigned int>::const_iterator iIt = fWZEvent->fTightLeptonsIndex.begin();
-         iIt != fWZEvent->fTightLeptonsIndex.end(); ++iIt) {
-      if (fWZEvent->fLeptons.at(*iIt)->IsLooseTight().second !=
-          fWZEvent->fLeptons.at(*iIt)->IsLooseTightCutBased25ns().second
-          &&
-          fWZEvent->GetFinalState() == eee) {
-        nDiffTot++;
-        hEoverPinv->Fill(fWZEvent->fLeptons.at(*iIt)->fEoverPinv);
-      }
-    }
-    for (vector<Lepton*>::const_iterator lIt = fWZEvent->fLeptons.begin();
-         lIt != fWZEvent->fLeptons.end(); ++lIt) {
-      if ((*lIt)->IsLooseTight().second != (*lIt)->IsLooseTightCutBased25ns().second &&
-          fWZEvent->GetFinalState() == eee)
-        (*lIt)->IsLooseTightCutBased25ns().second  ? nDiff1++ : nDiff2++;
-    }
-  }
-  if (nDiffTot)
-    cout << endl << "Total difference: " << nDiffTot << "\n"
-         << "VID Medium: " << nDiff2 << "\nCut Based Medium: " << nDiff1 << "\n"
-         << fWZEvent->run << ":" << fWZEvent->lumis << ":" << fWZEvent->event << endl << endl;
-        
-        
-        /*
-        if(fWZEvent->fLeptons.at(*iIt)->ecalEnergy() == 0 ){
-              printf("Electron energy is zero!\n");
-              ooEmooP_.push_back( 1e30 );
-            }else if( !std::isfinite(el->ecalEnergy())){
-              printf("Electron energy is not finite!\n");
-              ooEmooP_.push_back( 1e30 );
-            }else{
-              ooEmooP_.push_back( fabs(1.0/el->ecalEnergy() - el->eSuperClusterOverP()/el->ecalEnergy() ) );
-            }
-      */
-        
-
-
-//  Devin:
-//  I select 2 events you do not:
-//  mme: 1:8665:1732461
-//  mmm: 1:6067:1212962
-
-  /*
-  if (fWZEvent->event == 1212962 && fWZEvent->lumis == 6067) {
-    cout << endl << "Event: " << fWZEvent->event
-         << ", lumi section: " << fWZEvent->lumis << "\n"
-         << "State: " << fWZEvent->GetFinalState()
-         << ", Selection Level: " << fWZEvent->GetSelectionLevel() << "\n"
-         << "No. tight leptons: " << fWZEvent->fTightLeptonsIndex.size() << endl;
-
-    unsigned int nEle = 0;
-    unsigned int nMu = 0;
-    for (vector<unsigned int>::const_iterator iIt = fWZEvent->fTightLeptonsIndex.begin();
-         iIt != fWZEvent->fTightLeptonsIndex.end(); ++iIt) {
-      unsigned int id = fWZEvent->fLeptons.at(*iIt)->GetPdgId();
-      const double pt = fWZEvent->fLeptons.at(*iIt)->Pt();
-      const double eta = fWZEvent->fLeptons.at(*iIt)->Eta();
-      if (id == 11) {
-        nEle++;
-        cout << "Electron:\n pt = " << pt << ", eta = " << eta << endl;
-      } else if (id == 13) {
-        nMu++;
-        cout << "Muon:\n pt = " << pt << ", eta = " << eta << endl;
-      }
-    }
-//        cout << "Z mass: " << massZ << ", Z pt: " << ptZ << "\n"
-//             << "Zl1 pt: " << ptZl1 << ", Zl2 pt: " << ptZl2 << endl;
-
-    cout << endl;
-  }
-
-
-
-  if (fWZEvent->event == 1732461 && fWZEvent->lumis == 8665) {
-    cout << endl << "Event: " << fWZEvent->event
-         << ", lumi section: " << fWZEvent->lumis << "\n"
-         << "State: " << fWZEvent->GetFinalState()
-         << ", Selection Level: " << fWZEvent->GetSelectionLevel() << "\n"
-         << "No. tight leptons: " << fWZEvent->fTightLeptonsIndex.size() << endl;
-
-    unsigned int nEle = 0;
-    unsigned int nMu = 0;
-    for (vector<unsigned int>::const_iterator iIt = fWZEvent->fTightLeptonsIndex.begin();
-        iIt != fWZEvent->fTightLeptonsIndex.end(); ++iIt) {
-      unsigned int id = fWZEvent->fLeptons.at(*iIt)->GetPdgId();
-      const double pt = fWZEvent->fLeptons.at(*iIt)->Pt();
-      const double eta = fWZEvent->fLeptons.at(*iIt)->Eta();
-      if (id == 11) {
-        nEle++;
-        cout << "Electron:\n pt = " << pt << ", eta = " << eta << endl;
-      } else if (id == 13) {
-        nMu++;
-        cout << "Muon:\n pt = " << pt << ", eta = " << eta << endl;
-      }
-    }
-//        cout << "Z mass: " << massZ << ", Z pt: " << ptZ << "\n"
-//             << "Zl1 pt: " << ptZl1 << ", Zl2 pt: " << ptZl2 << endl;
-
-    cout << endl;
-  }
-
-*/
-
-
 
   if (!(fWZEvent->PassesFullSelection()))  return;
 

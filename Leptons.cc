@@ -107,21 +107,6 @@ pair<bool, bool> Electron::IsLooseTightCutBased25ns()
     max(0.0, fWZTree->elePFPhoIso->at(fIndex) - fWZTree->rho * effA +
              fWZTree->elePFNeuIso->at(fIndex))) / Pt();
 
-  fEoverPinv = fWZTree->eleEoverPInv->at(fIndex);
-
-  /*
-  if( el->ecalEnergy() == 0 ){
-        printf("Electron energy is zero!\n");
-        ooEmooP_.push_back( 1e30 );
-      }else if( !std::isfinite(el->ecalEnergy())){
-        printf("Electron energy is not finite!\n");
-        ooEmooP_.push_back( 1e30 );
-      }else{
-        ooEmooP_.push_back( fabs(1.0/el->ecalEnergy() - el->eSuperClusterOverP()/el->ecalEnergy() ) );
-      }
-*/
-
-
   if (absEleSCEta <= ETASCBARREL) {
     if (fWZTree->eleSigmaIEtaIEtaFull5x5->at(fIndex) < FULL5x5_SIGMAIETAIETA_BARREL_LOOSE_25ns &&
         abs(fWZTree->eledEtaAtVtx->at(fIndex)) < DETAIN_BARREL_LOOSE_25ns &&
