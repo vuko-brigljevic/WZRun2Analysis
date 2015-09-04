@@ -57,19 +57,29 @@ void WZJetStudy::EventAnalysis()
   unsigned int nJEle = 0;
   vector<TLorentzVector> jets;
   for (unsigned int i = 0; i < fWZEvent->jetPt->size(); i++) {
+
+//  in ggNtuplizer V07-04-05 use explicit cuts
 /*    if (!(fWZEvent->jetNHF->at(i) < 0.99) || !(fWZEvent->jetNEF->at(i) < 0.99) ||
         !(fWZEvent->jetCEF->at(i) < 0.99) || !(fWZEvent->jetNConstituents->at(i) > 1) ||
         fWZEvent->jetCHF->at(i) == 0 || fWZEvent->jetNCH->at(i) == 0)
-      continue; */
+      continue;
+    */
+
+//  while in version V07-04-09 use bool for 'PURE09' and 'LOOSE' (defined with cuts above)
+    for (vector<bool>::const_iterator bIt = fWZEvent->jetPFLooseId->begin();
+         bIt != fWZEvent->jetPFLooseId->end(); ++bIt)
+      if (!(*bIt))  continue;
+
     const double ptJet = fWZEvent->jetPt->at(i);
     const double etaJet = fWZEvent->jetEta->at(i);
     if (!(ptJet > JET_PTMIN) || !(abs(etaJet) < JET_ETAMAX))  continue;
     nJ++;
     if (fWZEvent->fTightLeptonsIndex.size() == 0)  continue;
     const double phiJet = fWZEvent->jetPhi->at(i);
-    const double eJet = fWZEvent->jetEn->at(i); // present only in V07-04-09+, use M=0 instead
+//    const double eJet = fWZEvent->jetEn->at(i); // present only in V07-04-09+, otherwise use M=0
     TLorentzVector lJet;
-    lJet.SetPtEtaPhiE(ptJet, etaJet, phiJet, eJet);
+//    lJet.SetPtEtaPhiE(ptJet, etaJet, phiJet, eJet);
+    lJet.SetPtEtaPhiM(ptJet, etaJet, phiJet, 0);
     jets.push_back(lJet);
 
     bool hasMu = false;

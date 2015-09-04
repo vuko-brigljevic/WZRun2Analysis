@@ -57,7 +57,7 @@ void WZSelectionYields::Init()
   // Setup selected event lists 
   for (int i = 1; i <= 4; i++) {
     ostringstream outputFileName;
-    outputFileName << "output/yields/test_" << i << ".txt";
+    outputFileName << "output/mc/DYJetsToLL_M-50_ggNtuple_V07_04_09_01_FullSelection_" << i << ".txt";
     cout << "File name : " << outputFileName.str() << endl;
     eventLists[i-1].open(outputFileName.str().c_str());
   }
@@ -106,12 +106,18 @@ void WZSelectionYields::EventAnalysis()
   unsigned int nSelectedJetsNoEleIso = 0;
   unsigned int nSelectedJetsNoIso = 0;
   for (unsigned int i = 0; i < fWZEvent->jetPt->size(); i++) {
+
+//  in ggNtuplizer V07-04-05 use explicit cuts
     /*
     if (!(fWZEvent->jetNHF->at(i) < 0.99) || !(fWZEvent->jetNEF->at(i) < 0.99) ||
         !(fWZEvent->jetCEF->at(i) < 0.99) || !(fWZEvent->jetNConstituents->at(i) > 1) ||
-        fWZEvent->jetCHF->at(i) == 0 || fWZEvent->jetNCH->at(i) == 0)
+        !(fWZEvent->jetCHF->at(i) > 0) || !(fWZEvent->jetNCH->at(i) > 0))
       continue;
-//  above jet variables were removed from ggNtuple with V07-04-09-00 */
+    */
+//  while in version V07-04-09 use bool for 'PURE09' and 'LOOSE' (defined with cuts above)
+    for (vector<bool>::const_iterator bIt = fWZEvent->jetPFLooseId->begin();
+         bIt != fWZEvent->jetPFLooseId->end(); ++bIt)
+      if (!(*bIt))  continue;
 
     const double ptJet = fWZEvent->jetPt->at(i);
     const double etaJet = fWZEvent->jetEta->at(i);
@@ -119,9 +125,10 @@ void WZSelectionYields::EventAnalysis()
 
     nSelectedJetsNoIso++;
     const double phiJet = fWZEvent->jetPhi->at(i);
-    const double eJet = fWZEvent->jetEn->at(i);  // present only in V07-04-09+, use M=0 instead
+    const double eJet = fWZEvent->jetEn->at(i);  // present only in V07-04-09+, otherwise use M=0
     TLorentzVector lJet;
     lJet.SetPtEtaPhiE(ptJet, etaJet, phiJet, eJet);
+//    lJet.SetPtEtaPhiM(ptJet, etaJet, phiJet, 0);
     const double deltaRJetWl = fWZEvent->GetWLepton()->DeltaR(lJet);
     const double deltaRJetZl1 = fWZEvent->GetZLeptons().first->DeltaR(lJet);
     const double deltaRJetZl2 = fWZEvent->GetZLeptons().second->DeltaR(lJet);

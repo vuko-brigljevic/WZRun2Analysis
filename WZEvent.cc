@@ -46,6 +46,7 @@ void WZEvent::ReadEvent()
     }
   }
 
+// in ggNtuplizer versions V07-04-09+
   if (HLTEleMuX) {
     const vector<unsigned int> hlt25nsBits { 8, 20, 21, 41, 42, 9, 43, 44, 28 };
         for (vector<unsigned int>::const_iterator bIt = hlt25nsBits.begin();
@@ -85,7 +86,7 @@ bool WZEvent::PassesPreselection()
 
   for (vector<Lepton*>::iterator lIt = fLeptons.begin(); lIt != fLeptons.end(); ++lIt) {
     if ((*lIt)->PassesPtMinCut() && (*lIt)->PassesEtaMaxCut() &&
-        (*lIt)->IsLooseTightCutBased25ns().second) {
+        (*lIt)->IsLooseTight().second) {
       unsigned int index = distance(fLeptons.begin(), lIt);
       fTightLeptonsIndex.push_back(index);
       if ((*lIt)->GetPdgId() == 11)       nEleTight++;
