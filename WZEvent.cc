@@ -1,14 +1,52 @@
 #include "WZEvent.h"
 #include "Constants.h"
 
+#include <iomanip>
+
 
 using namespace std;
+
+
+double EffArea25ns(double absEleSCEta)
+{
+  double effA25ns = 0;
+// Slide 4 in https://indico.cern.ch/event/370507/contribution/1/attachments/1140657/1633761/Rami_eleCB_ID_25ns.pdf
+// and Slide 12 in https://indico.cern.ch/event/369239/contribution/4/attachments/1134761/1623262/talk_effective_areas_25ns.pdf
+// and Line 407 for abs(eleSCEta) in https://github.com/ikrav/EgammaWork/blob/ntupler_and_VID_demos_747/ElectronNtupler/plugins/SimpleElectronNtupler.cc
+  if (absEleSCEta >= 0.0 && absEleSCEta < 1.0)         effA25ns = 0.1752;
+  else if (absEleSCEta >= 1.0 && absEleSCEta < 1.479)  effA25ns = 0.1862;
+  else if (absEleSCEta >= 1.479 && absEleSCEta < 2.0)  effA25ns = 0.1411;
+  else if (absEleSCEta >= 2.0 && absEleSCEta < 2.2)    effA25ns = 0.1534;
+  else if (absEleSCEta >= 2.2 && absEleSCEta < 2.3)    effA25ns = 0.1903;
+  else if (absEleSCEta >= 2.3 && absEleSCEta < 2.4)    effA25ns = 0.2243;
+  else if (absEleSCEta >= 2.4 && absEleSCEta < 2.5)    effA25ns = 0.2687;
+  else  effA25ns = 0;
+
+  return effA25ns;
+}
+
+
+double EffArea50ns(double absEleSCEta)
+{
+  double effA50ns = 0;
+// Slide 4 in https://indico.cern.ch/event/369239/contribution/6/attachments/1134836/1623383/Rami_eleCB_ID_50ns.pdf
+// and Slide 8 in https://indico.cern.ch/event/369235/contribution/4/attachments/734635/1007867/Rami_EffAreas.pdf
+// and Line 407 for abs(EleSCEta) in https://github.com/ikrav/EgammaWork/blob/ntupler_and_VID_demos_747/ElectronNtupler/plugins/SimpleElectronNtupler.cc
+  if      (absEleSCEta >= 0.0 && absEleSCEta < 0.8)  effA50ns = 0.0973;
+  else if (absEleSCEta >= 0.8 && absEleSCEta < 1.3)  effA50ns = 0.0954;
+  else if (absEleSCEta >= 1.3 && absEleSCEta < 2.0)  effA50ns = 0.0632;
+  else if (absEleSCEta >= 2.0 && absEleSCEta < 2.2)  effA50ns = 0.0727;
+  else if (absEleSCEta >= 2.2 && absEleSCEta < 2.5)  effA50ns = 0.1337;
+  else  effA50ns = 0;
+
+  return effA50ns;
+}
 
 
 WZEvent::WZEvent(TTree* tree) :
   WZBASECLASS(tree)
 {
-  // Set static pointer to Lepton class
+// Set static pointer to Lepton class
   Lepton::SetWZEvent(this);
 }
 
@@ -21,9 +59,8 @@ void WZEvent::Clear()
   fFinalState = undefined;
   fSelectionLevel = Undefined;
 
-  // Empty leptons
-  vector<Lepton*>::iterator lIt;
-  for (lIt = fLeptons.begin(); lIt != fLeptons.end(); ) {
+// Empty leptons
+  for (vector<Lepton*>::iterator lIt = fLeptons.begin(); lIt != fLeptons.end(); ) {
     delete *lIt;  
     lIt = fLeptons.erase(lIt);
   }
@@ -55,17 +92,48 @@ void WZEvent::ReadEvent()
     }
   }
 
-  // Electrons
+// Electrons
   for (unsigned int indexEle = 0; indexEle < eleCharge->size(); indexEle++) {
+// From UW Twiki https://twiki.cern.ch/twiki/bin/viewauth/CMS/WZ13TeV
+// (mu.chargedHadronIso() +
+//  max(mu.photonIso() + mu.neutralHadronIso() - 0.5 * mu.puChargedHadronIso,0.0))
+// / mu.pt()
+    const double relIsoDeltaB = (elePFChIso->at(indexEle) + max(elePFPhoIso->at(indexEle) +
+                                 elePFNeuIso->at(indexEle) - 0.5 * elePFPUIso->at(indexEle), 0.0))
+                                / elePt->at(indexEle);
+
+    const double absEleSCEta = abs(eleSCEta->at(indexEle));
+// Slide 2 in https://indico.cern.ch/event/369239/contribution/4/attachments/1134761/1623262/talk_effective_areas_25ns.pdf
+// relIsoWithEA = 1/pt * (pfIso.sumChargedHadronPt +
+//                        max(0.0, pfIso.sumNeutralHadronEt + pfIso.sumPhotonEt - rho * EffArea)
+    const double relIsoEffA25ns = (elePFChIso->at(indexEle) + max(elePFPhoIso->at(indexEle) +
+                                   elePFNeuIso->at(indexEle) - rho * EffArea25ns(absEleSCEta), 0.0))
+                                  / elePt->at(indexEle);    
+// Slide 8 in https://indico.cern.ch/event/369235/contribution/4/attachments/734635/1007867/Rami_EffAreas.pdf
+// relIsoWithEA = 1/pt * (pfIso.sumChargedHadronPt +
+//                       max(0.0, pfIso.sumNeutralHadronEt + pfIso.sumPhotonEt - rho * EffArea)
+    const double relIsoEffA50ns = (elePFChIso->at(indexEle) + max(elePFPhoIso->at(indexEle) +
+                                   elePFNeuIso->at(indexEle) - rho * EffArea50ns(absEleSCEta), 0.0))
+                                  / elePt->at(indexEle);    
+
     Electron* ele = new Electron(indexEle, elePt->at(indexEle), eleEta->at(indexEle),
-                                 elePhi->at(indexEle), eleCharge->at(indexEle));
+                                 elePhi->at(indexEle), eleCharge->at(indexEle),
+                                 relIsoDeltaB, relIsoEffA25ns, relIsoEffA50ns);
     fLeptons.push_back(ele);
   }
 
-  // Muons
+// Muons
   for (unsigned int indexMu = 0; indexMu < muCharge->size(); indexMu++) {
+// From UW Twiki https://twiki.cern.ch/twiki/bin/viewauth/CMS/WZ13TeV
+// (mu.chargedHadronIso() +
+//  max(mu.photonIso() + mu.neutralHadronIso() - 0.5 * mu.puChargedHadronIso,0.0))
+// / mu.pt()
+    const double relIsoDeltaB = (muPFChIso->at(indexMu) + max(muPFPhoIso->at(indexMu) +
+                                 muPFNeuIso->at(indexMu) - 0.5 * muPFPUIso->at(indexMu), 0.0))
+                                / muPt->at(indexMu);
+
     Muon* mu = new Muon(indexMu, muPt->at(indexMu), muEta->at(indexMu),
-                        muPhi->at(indexMu), muCharge->at(indexMu));
+                        muPhi->at(indexMu), muCharge->at(indexMu), relIsoDeltaB, 0.0, 0.0);
     fLeptons.push_back(mu);
   }
 }
@@ -250,18 +318,102 @@ void WZEvent::DumpEvent(ostream& out, int verbosity)
 {
   out << run << ":" << lumis << ":" << event;
 
-  vector<unsigned int> indexWZLeptons =
-  { fZLeptonsIndex.first, fZLeptonsIndex.second, fWLeptonIndex };
+// Preselection (verbosity = 5) format for event listing:
+// l1_pt:l1_eta:l1_phi:l1_iso:l2_pt:l2_eta:l2_phi:l2_iso:l3_pt:l3_eta:l3_phi:l3_iso:
+// deltaR_l1_l2:deltaR_l1_l3:deltaR_l2_l3:0:MET:MET_phi:3l_mass
 
-  if (verbosity > 1) {
+  if (verbosity == 5) {
+    const unsigned int nTight = fTightLeptonsIndex.size();
+    if (nTight == N_TIGHTLEPTONS) {
+      vector<Lepton*> tightLeptons;
+      for (vector<unsigned int>::const_iterator iIt = fTightLeptonsIndex.begin();
+           iIt != fTightLeptonsIndex.end(); ++iIt)
+        if (*iIt < fLeptons.size())  tightLeptons.push_back(fLeptons.at(*iIt));
+
+      sort(tightLeptons.begin(), tightLeptons.end(), HigherPt);
+
+      TLorentzVector total3L;
+      for (vector<Lepton*>::const_iterator lIt = tightLeptons.begin();
+           lIt != tightLeptons.end(); ++lIt) {
+        out << fixed << setprecision(4)
+            << ":" << (*lIt)->Pt() << ":" << (*lIt)->Eta() << ":" << (*lIt)->Phi()
+            << ":" << (*lIt)->GetRelIsoDeltaB();
+        total3L += *(*lIt);
+      }
+
+      for (vector<Lepton*>::const_iterator lIt1 = tightLeptons.begin();
+           lIt1 != tightLeptons.end(); ++lIt1) {
+        for (vector<Lepton*>::const_iterator lIt2 = tightLeptons.begin() + 1;
+             lIt2 != tightLeptons.end(); ++lIt2)
+          out << fixed << setprecision(4) << ":" << (*lIt1)->DeltaR(*(*lIt2));
+      }
+
+      const double mass3L = total3L.M();
+      out << fixed << setprecision(4)
+          << ":" << 0 << ":" << pfMET << ":" << pfMETPhi << ":" << mass3L;
+
+      for (vector<Lepton*>::iterator lIt = tightLeptons.begin(); lIt != tightLeptons.end(); ) {
+        delete *lIt;  
+        lIt = tightLeptons.erase(lIt);
+      }
+
+    }
+  }
+
+// Event listing format for Z Selection (verbosity = 7) and W/Final Selection (verbosity >= 10):
+//  Zl1_pt:Zl1_eta:Zl1_phi:Zl1_iso:Zl2_pt:Zl2_eta:Zl2_phi:Zl2_iso:Wl_pt:Wl_eta:Wl_phi:Wl_iso:
+//  deltaR_Zl1_Zl2:deltaR_Zl1_Wl:deltaR_Zl2_Wl:Z_mass:MET:MET_phi:3l_mass
+
+  if (verbosity == 7) {
+    if (fZLeptonsIndex.first < fLeptons.size() && fZLeptonsIndex.second < fLeptons.size()) {
+      out << fixed << setprecision(4)
+          << ":" << GetZLeptons().first->Pt()
+          << ":" << GetZLeptons().first->Eta()
+          << ":" << GetZLeptons().first->Phi()
+          << ":" << GetZLeptons().first->GetRelIsoDeltaB()
+          << ":" << GetZLeptons().second->Pt()
+          << ":" << GetZLeptons().second->Eta()
+          << ":" << GetZLeptons().second->Phi()
+          << ":" << GetZLeptons().second->GetRelIsoDeltaB();
+
+      for (vector<unsigned int>::const_iterator iIt = fTightLeptonsIndex.begin();
+           iIt != fTightLeptonsIndex.end(); ++iIt) {
+        if (*iIt != fZLeptonsIndex.first && *iIt != fZLeptonsIndex.second && *iIt < fLeptons.size()) {
+          out << ":" << fLeptons.at(*iIt)->Pt()
+              << ":" << fLeptons.at(*iIt)->Eta()
+              << ":" << fLeptons.at(*iIt)->Phi()
+              << ":" << fLeptons.at(*iIt)->GetRelIsoDeltaB()
+              << ":" << GetZLeptons().first->DeltaR(*(GetZLeptons().second))
+              << ":" << GetZLeptons().first->DeltaR(*(fLeptons.at(*iIt)))
+              << ":" << GetZLeptons().second->DeltaR(*(fLeptons.at(*iIt)))
+              << ":" << (*(GetZLeptons().first) + *(GetZLeptons().second)).M()
+              << ":" << pfMET << ":" << pfMETPhi
+              << ":" << (*(GetZLeptons().first) + *(GetZLeptons().second) + *(fLeptons.at(*iIt))).M();
+        }
+      }
+    }
+  }
+
+  if (!(verbosity < 10)) {
+    vector<unsigned int> indexWZLeptons =
+      { fZLeptonsIndex.first, fZLeptonsIndex.second, fWLeptonIndex };
     for (vector<unsigned int>::iterator iIt = indexWZLeptons.begin();
          iIt != indexWZLeptons.end(); ++iIt) {
       if (*iIt < fLeptons.size()) {
-        out << " Lepton : " << distance(indexWZLeptons.begin(), iIt)
-            << " Pt = " << fLeptons.at(*iIt)->Pt()
-            << " Eta = " << fLeptons.at(*iIt)->Eta();
+        out << fixed << setprecision(4)
+            << ":" << fLeptons.at(*iIt)->Pt()
+            << ":" << fLeptons.at(*iIt)->Eta()
+            << ":" << fLeptons.at(*iIt)->Phi()
+            << ":" << fLeptons.at(*iIt)->GetRelIsoDeltaB();
       }
     }
+    out << fixed << setprecision(4)
+        << ":" << GetZLeptons().first->DeltaR(*(GetZLeptons().second))
+        << ":" << GetZLeptons().first->DeltaR(*(GetWLepton()))
+        << ":" << GetZLeptons().second->DeltaR(*(GetWLepton()))
+        << ":" << (*(GetZLeptons().first) + *(GetZLeptons().second)).M()
+        << ":" << pfMET << ":" << pfMETPhi
+        << ":" << (*(GetZLeptons().first) + *(GetZLeptons().second) + *(GetWLepton())).M();
   }
 
   out << endl;

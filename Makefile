@@ -38,7 +38,7 @@ all: $(EXES)
 
 wzAnalysis: wzAnalysis.o WZEvent.o EventTree_ggNtuplizer_V07_04_05_04.o EventTree_ggNtuplizer_V07_04_09_01.o Leptons.o GenericAnalysis.o WZSelectionAnalysis.o
 
-wzSelection: wzSelection.o EventTree_ggNtuplizer_V07_04_05_04.o EventTree_ggNtuplizer_V07_04_09_01.o WZEvent.o Leptons.o GenericAnalysis.o WZSelectionYields.o WZJetStudy.o
+wzSelection: EventTree_ggNtuplizer_V07_04_05_04.o EventTree_ggNtuplizer_V07_04_09_01.o Leptons.o WZEvent.o GenericAnalysis.o WZJetStudy.o WZSelectionYields.o wzSelection.o
 
 
 clean:

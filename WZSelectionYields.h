@@ -31,6 +31,10 @@ protected:
   unsigned int yieldsByChannelFullSelection[5];
 
   std::ofstream eventLists[4];
+  std::ofstream eventLists1[4];
+  std::ofstream eventLists2[4];
+  std::ofstream eventLists3[4];
+  std::ofstream eventLists4[4];
 
   TH1D* hZmass[5];
   TH1D* hZpt[5];

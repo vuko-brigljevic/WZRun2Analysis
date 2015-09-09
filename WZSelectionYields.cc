@@ -57,9 +57,29 @@ void WZSelectionYields::Init()
   // Setup selected event lists 
   for (int i = 1; i <= 4; i++) {
     ostringstream outputFileName;
-    outputFileName << "output/mc/DYJetsToLL_M-50_ggNtuple_V07_04_09_01_FullSelection_" << i << ".txt";
+    outputFileName << "output/test/WZTo3LNu_Full_end_" << i << ".txt";
     cout << "File name : " << outputFileName.str() << endl;
     eventLists[i-1].open(outputFileName.str().c_str());
+
+    ostringstream outputFileName1;
+    outputFileName1 << "output/test/WZTo3LNu_FullSelection_" << i << ".txt";
+    cout << "File name : " << outputFileName1.str() << endl;
+    eventLists1[i-1].open(outputFileName1.str().c_str());
+
+    ostringstream outputFileName2;
+    outputFileName2 << "output/test/WZTo3LNu_WSelection_" << i << ".txt";
+    cout << "File name : " << outputFileName2.str() << endl;
+    eventLists2[i-1].open(outputFileName2.str().c_str());
+
+    ostringstream outputFileName3;
+    outputFileName3 << "output/test/WZTo3LNu_ZSelection_" << i << ".txt";
+    cout << "File name : " << outputFileName3.str() << endl;
+    eventLists3[i-1].open(outputFileName3.str().c_str());
+
+    ostringstream outputFileName4;
+    outputFileName4 << "output/test/WZTo3LNu_Preselection_" << i << ".txt";
+    cout << "File name : " << outputFileName4.str() << endl;
+    eventLists4[i-1].open(outputFileName4.str().c_str());
   }
 }
 
@@ -71,18 +91,22 @@ void WZSelectionYields::EventAnalysis()
   if (fWZEvent->PassesFullSelection()) {
     yieldsByChannelFullSelection[fWZEvent->GetFinalState()-1]++;
     yieldsByChannelFullSelection[4]++;
+    fWZEvent->DumpEvent(eventLists1[fWZEvent->GetFinalState()-1], 10);
   }
   if (fWZEvent->PassesWSelection()) {
     yieldsByChannelWSelection[fWZEvent->GetFinalState()-1]++;
     yieldsByChannelWSelection[4]++;
+    fWZEvent->DumpEvent(eventLists2[fWZEvent->GetFinalState()-1], 10);
   }
   if (fWZEvent->PassesZSelection()){
     yieldsByChannelZSelection[fWZEvent->GetFinalState()-1]++;
     yieldsByChannelZSelection[4]++;
+    fWZEvent->DumpEvent(eventLists3[fWZEvent->GetFinalState()-1], 7);
   }
   if (fWZEvent->PassesPreselection()) {
     yieldsByChannelPreselection[fWZEvent->GetFinalState()-1]++;
     yieldsByChannelPreselection[4]++;
+    fWZEvent->DumpEvent(eventLists4[fWZEvent->GetFinalState()-1], 7);
   }
 
   if (!(fWZEvent->PassesFullSelection()))  return;
@@ -186,7 +210,7 @@ void WZSelectionYields::EventAnalysis()
   hNJetsNoEleIso[fWZEvent->GetFinalState()-1]->Fill(nSelectedJetsNoEleIso);
   hNJetsNoIso[fWZEvent->GetFinalState()-1]->Fill(nSelectedJetsNoIso);
 
-  fWZEvent->DumpEvent(eventLists[fWZEvent->GetFinalState()-1], 1);
+  fWZEvent->DumpEvent(eventLists[fWZEvent->GetFinalState()-1]);
 }
 
 
