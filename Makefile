@@ -34,13 +34,11 @@ endef
 	$(ROOTSYS)/bin/rootcint -f $@ -c -I. $^
 
 
-
 all: $(EXES)
 
-wzAnalysis: wzAnalysis.o WZEvent.o EventTree.o Leptons.o GenericAnalysis.o WZSelectionAnalysis.o
+wzAnalysis: wzAnalysis.o WZEvent.o EventTree_ggNtuplizer_V07_04_05_04.o EventTree_ggNtuplizer_V07_04_09_01.o Leptons.o GenericAnalysis.o WZSelectionAnalysis.o
 
-
-wzSelectionYields: wzSelectionYields.o WZEvent.o EventTree.o Leptons.o
+wzSelection: EventTree_ggNtuplizer_V07_04_05_04.o EventTree_ggNtuplizer_V07_04_09_01.o Leptons.o WZEvent.o GenericAnalysis.o WZJetStudy.o WZSelectionYields.o wzSelection.o
 
 
 clean:
