@@ -38,13 +38,16 @@ void WZSelectionYields::Init()
     hWlpt[i] = bookTH1D(("hWlpt_" + boost::lexical_cast<string>(i)).c_str(),
                         "W Lepton pt", 100, 0, 200);
     hNJets[i] = bookTH1D(("hNJets_" + boost::lexical_cast<string>(i)).c_str(),
-                         "No. Jets", 11, -0.5, 10.5);
+                         "No. Jets", 7, -0.5, 6.5);
     hNJetsNoMuIso[i] = bookTH1D(("hNJetsNoMuIso_" + boost::lexical_cast<string>(i)).c_str(),
                                 "No. Jets", 11, -0.5, 10.5);
     hNJetsNoEleIso[i] = bookTH1D(("hNJetsNoEleIso_" + boost::lexical_cast<string>(i)).c_str(),
                                  "No. Jets", 11, -0.5, 10.5);
     hNJetsNoIso[i] = bookTH1D(("hNJetsNoIso_" + boost::lexical_cast<string>(i)).c_str(),
                               "No. Jets", 11, -0.5, 10.5);
+    h3LMass[i] = bookTH1D(("h3LMass_" + boost::lexical_cast<string>(i)).c_str(),
+                          "3L Mass", 150, 50, 350);
+
   }
 
   for (int i = 0; i <= 4; i++) {
@@ -52,35 +55,37 @@ void WZSelectionYields::Init()
     yieldsByChannelZSelection[i] = 0;
     yieldsByChannelWSelection[i] = 0;
     yieldsByChannelFullSelection[i] = 0;
+    yieldsByChannelFinalSelection[i] = 0;
   }
-
+/*
   // Setup selected event lists 
   for (int i = 1; i <= 4; i++) {
-    ostringstream outputFileName;
-    outputFileName << "output/test/WZTo3LNu_Full_end_" << i << ".txt";
-    cout << "File name : " << outputFileName.str() << endl;
-    eventLists[i-1].open(outputFileName.str().c_str());
+    ostringstream outputFileName0;
+    outputFileName0 << "output/data/WSelection/Run2015C_25ns-JSON-v2_FinalSelection_" << i << ".txt";
+    cout << "File name : " << outputFileName0.str() << endl;
+    eventLists0[i-1].open(outputFileName0.str().c_str());
 
     ostringstream outputFileName1;
-    outputFileName1 << "output/test/WZTo3LNu_FullSelection_" << i << ".txt";
+    outputFileName1 << "output/data/WSelection/Run2015C_25ns-JSON-v2_FullSelection_" << i << ".txt";
     cout << "File name : " << outputFileName1.str() << endl;
     eventLists1[i-1].open(outputFileName1.str().c_str());
 
     ostringstream outputFileName2;
-    outputFileName2 << "output/test/WZTo3LNu_WSelection_" << i << ".txt";
+    outputFileName2 << "output/data/WSelection/Run2015C_25ns-JSON-v2_WSelection_" << i << ".txt";
     cout << "File name : " << outputFileName2.str() << endl;
     eventLists2[i-1].open(outputFileName2.str().c_str());
 
     ostringstream outputFileName3;
-    outputFileName3 << "output/test/WZTo3LNu_ZSelection_" << i << ".txt";
+    outputFileName3 << "output/data/WSelection/Run2015C_25ns-JSON-v2_ZSelection_" << i << ".txt";
     cout << "File name : " << outputFileName3.str() << endl;
     eventLists3[i-1].open(outputFileName3.str().c_str());
 
     ostringstream outputFileName4;
-    outputFileName4 << "output/test/WZTo3LNu_Preselection_" << i << ".txt";
+    outputFileName4 << "output/test_Preselection_" << i << ".txt";
     cout << "File name : " << outputFileName4.str() << endl;
     eventLists4[i-1].open(outputFileName4.str().c_str());
   }
+*/
 }
 
 
@@ -88,28 +93,35 @@ void WZSelectionYields::EventAnalysis()
 {
   nAnalyzedEvents++;
 
+  if (fWZEvent->PassesFinalSelection()) {
+    yieldsByChannelFinalSelection[fWZEvent->GetFinalState()-1]++;
+    yieldsByChannelFinalSelection[4]++;
+//    fWZEvent->DumpEvent(eventLists0[fWZEvent->GetFinalState()-1], 10);
+  }
   if (fWZEvent->PassesFullSelection()) {
     yieldsByChannelFullSelection[fWZEvent->GetFinalState()-1]++;
     yieldsByChannelFullSelection[4]++;
-    fWZEvent->DumpEvent(eventLists1[fWZEvent->GetFinalState()-1], 10);
+//    fWZEvent->DumpEvent(eventLists1[fWZEvent->GetFinalState()-1], 10);
   }
   if (fWZEvent->PassesWSelection()) {
     yieldsByChannelWSelection[fWZEvent->GetFinalState()-1]++;
     yieldsByChannelWSelection[4]++;
-    fWZEvent->DumpEvent(eventLists2[fWZEvent->GetFinalState()-1], 10);
+//    fWZEvent->DumpEvent(eventLists2[fWZEvent->GetFinalState()-1], 10);
   }
   if (fWZEvent->PassesZSelection()){
     yieldsByChannelZSelection[fWZEvent->GetFinalState()-1]++;
     yieldsByChannelZSelection[4]++;
-    fWZEvent->DumpEvent(eventLists3[fWZEvent->GetFinalState()-1], 7);
+//    fWZEvent->DumpEvent(eventLists3[fWZEvent->GetFinalState()-1], 7);
   }
   if (fWZEvent->PassesPreselection()) {
     yieldsByChannelPreselection[fWZEvent->GetFinalState()-1]++;
     yieldsByChannelPreselection[4]++;
-    fWZEvent->DumpEvent(eventLists4[fWZEvent->GetFinalState()-1], 7);
+//    fWZEvent->DumpEvent(eventLists4[fWZEvent->GetFinalState()-1], 7);
   }
 
-  if (!(fWZEvent->PassesFullSelection()))  return;
+  if (!(fWZEvent->PassesFinalSelection()))  return;
+//  if (!(fWZEvent->PassesFullSelection()))  return;
+//  if (!(fWZEvent->PassesWSelection()))  return;
 
   nSelectedEvents++;
   const double massZ = (*(fWZEvent->GetZLeptons().first) + *(fWZEvent->GetZLeptons().second)).M();
@@ -123,6 +135,8 @@ void WZSelectionYields::EventAnalysis()
   const double pyMET = met * sin(phiMET);
   TLorentzVector lMET(pxMET, pyMET, 0., met);
   const double mt = sqrt(2 * met * ptWl * (1 - cos(fWZEvent->GetWLepton()->DeltaPhi(lMET))));
+  const double mass3L = (*(fWZEvent->GetZLeptons().first) + *(fWZEvent->GetZLeptons().second) +
+                         *(fWZEvent->GetWLepton())).M();
 
 // Counting accompanying jets
   unsigned int nSelectedJets = 0;
@@ -197,6 +211,7 @@ void WZSelectionYields::EventAnalysis()
   hNJetsNoMuIso[4]->Fill(nSelectedJetsNoMuIso);
   hNJetsNoEleIso[4]->Fill(nSelectedJetsNoEleIso);
   hNJetsNoIso[4]->Fill(nSelectedJetsNoIso);
+  h3LMass[4]->Fill(mass3L);
 
   hZmass[fWZEvent->GetFinalState()-1]->Fill(massZ);
   hZpt[fWZEvent->GetFinalState()-1]->Fill(ptZ);
@@ -209,19 +224,19 @@ void WZSelectionYields::EventAnalysis()
   hNJetsNoMuIso[fWZEvent->GetFinalState()-1]->Fill(nSelectedJetsNoMuIso);
   hNJetsNoEleIso[fWZEvent->GetFinalState()-1]->Fill(nSelectedJetsNoEleIso);
   hNJetsNoIso[fWZEvent->GetFinalState()-1]->Fill(nSelectedJetsNoIso);
-
-  fWZEvent->DumpEvent(eventLists[fWZEvent->GetFinalState()-1]);
+  h3LMass[fWZEvent->GetFinalState()-1]->Fill(mass3L);
 }
 
 
 void WZSelectionYields::Finish()
 {
-  cout << "CHANNEL \tPreselection \tZ Selection \tW Selection \tFull Selection" << "\n";
+  cout << "CHANNEL \tPreselection \tZ Selection \tW Selection \tFull Selection \tFinal Selection" << "\n";
   for (int i = 1; i <= 5; i++) {
-    cout << i << "\t\t" << yieldsByChannelPreselection[i-1]
-              << "\t\t" << yieldsByChannelZSelection[i-1]
-              << "\t\t" << yieldsByChannelWSelection[i-1]
-              << "\t\t" << yieldsByChannelFullSelection[i-1] << "\n";
+    cout << i << "\t" << yieldsByChannelPreselection[i-1]
+              << "\t" << yieldsByChannelZSelection[i-1]
+              << "\t" << yieldsByChannelWSelection[i-1]
+              << "\t" << yieldsByChannelFullSelection[i-1]
+              << "\t" << yieldsByChannelFinalSelection[i-1] << "\n";
   }
   cout << endl;
 }

@@ -253,6 +253,12 @@ bool WZEvent::PassesWSelection()
       const double deltaR2 = fLeptons.at(*iIt)->DeltaR(*(fLeptons.at(fZLeptonsIndex.second)));
 
       if (wlPt > WLEPTON_PTMIN && deltaR1 > WZ_DELTARMIN && deltaR2 > WZ_DELTARMIN) {
+/*        
+        if (fLeptons.at(*iIt)->GetPdgId() == 11) {
+          const unsigned int index = fLeptons.at(*iIt)->GetIndex();
+          if (!(eleIDbit->at(index)>>ELETIGHT_BIT&1))  continue;
+        }
+*/
         passed = true;
         iWl.push_back(*iIt);
         ptWl.push_back(wlPt);
@@ -314,6 +320,23 @@ pair<Lepton*, Lepton*> WZEvent::GetZLeptons()
 }
 
 
+bool WZEvent::PassesFinalSelection()
+{
+  if (!(fSelectionLevel < FinalSelection))  return true;
+
+  bool passed = false;
+  if (!PassesPreselection() || !PassesZSelection() || !PassesWSelection() || !PassesFullSelection())
+    return passed;
+
+  const double mass3L = (*(GetZLeptons().first) + *(GetZLeptons().second) + *(GetWLepton())).M();
+  (mass3L > MASS3LMIN) ? passed = true : passed = false;
+
+  if (passed)  fSelectionLevel = FinalSelection;
+
+  return passed;
+}
+
+
 void WZEvent::DumpEvent(ostream& out, int verbosity)
 {
   out << run << ":" << lumis << ":" << event;
@@ -360,7 +383,7 @@ void WZEvent::DumpEvent(ostream& out, int verbosity)
     }
   }
 
-// Event listing format for Z Selection (verbosity = 7) and W/Final Selection (verbosity >= 10):
+// Event listing format for Z Selection (verbosity = 7) and W/Full/Final Selection (verbosity >= 10):
 //  Zl1_pt:Zl1_eta:Zl1_phi:Zl1_iso:Zl2_pt:Zl2_eta:Zl2_phi:Zl2_iso:Wl_pt:Wl_eta:Wl_phi:Wl_iso:
 //  deltaR_Zl1_Zl2:deltaR_Zl1_Wl:deltaR_Zl2_Wl:Z_mass:MET:MET_phi:3l_mass
 

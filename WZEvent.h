@@ -30,7 +30,8 @@ enum SelectionLevel
   Preselection,         // 2
   ZSelection,           // 3
   WSelection,           // 4
-  FullSelection         // 5
+  FullSelection,        // 5
+  FinalSelection        // 6
 };
 
 
@@ -51,6 +52,7 @@ public:
   bool PassesZSelection();
   bool PassesWSelection();
   bool PassesFullSelection();
+  bool PassesFinalSelection();
 
   FinalState GetFinalState() { return fFinalState; }
   SelectionLevel GetSelectionLevel() { return fSelectionLevel; }
