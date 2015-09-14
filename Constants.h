@@ -9,6 +9,7 @@
 // electrons ID bits and Pt & Eta cuts
 #define ELELOOSE_BIT  1
 #define ELEMEDIUM_BIT  2
+#define ELETIGHT_BIT  3
 #define ELE_PTMIN  10.
 #define ELE_ETAMAX  2.5
 
@@ -134,6 +135,11 @@
 // ### MET ###
 
 #define METMIN  30.
+
+
+// ### total inv. mass of 3 candidate leptons ###
+
+#define MASS3LMIN  100.
 
 
 // ### Jets ###

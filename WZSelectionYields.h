@@ -29,8 +29,9 @@ protected:
   unsigned int yieldsByChannelZSelection[5];
   unsigned int yieldsByChannelWSelection[5];
   unsigned int yieldsByChannelFullSelection[5];
+  unsigned int yieldsByChannelFinalSelection[5];
 
-  std::ofstream eventLists[4];
+  std::ofstream eventLists0[4];
   std::ofstream eventLists1[4];
   std::ofstream eventLists2[4];
   std::ofstream eventLists3[4];
@@ -47,6 +48,7 @@ protected:
   TH1D* hNJetsNoMuIso[5];
   TH1D* hNJetsNoEleIso[5];
   TH1D* hNJetsNoIso[5];
+  TH1D* h3LMass[5];
 
 };
 
