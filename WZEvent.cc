@@ -41,6 +41,11 @@ void WZEvent::Cleanup()
   nMuTightTwiki = 0;
   nZCand = 0;
   massZCand.clear();
+
+  zLeptonsIndex[0] = -1;
+  zLeptonsIndex[1] = -1;
+  wLeptonIndex     = -1;
+
 }
 
 void WZEvent::ReadEvent()
