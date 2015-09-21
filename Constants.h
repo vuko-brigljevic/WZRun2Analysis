@@ -1,5 +1,12 @@
 // ### Preselection ###
 
+
+// Cross section values (in pb)
+
+#define WZ_POWHEG_XS  4.43
+
+
+
 // electrons
 
 // Barrel and Endcap
