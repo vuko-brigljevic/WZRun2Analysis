@@ -253,7 +253,7 @@ bool WZEvent::PassesWSelection()
       const double deltaR2 = fLeptons.at(*iIt)->DeltaR(*(fLeptons.at(fZLeptonsIndex.second)));
 
       if (wlPt > WLEPTON_PTMIN && deltaR1 > WZ_DELTARMIN && deltaR2 > WZ_DELTARMIN) {
-/*        
+/*
         if (fLeptons.at(*iIt)->GetPdgId() == 11) {
           const unsigned int index = fLeptons.at(*iIt)->GetIndex();
           if (!(eleIDbit->at(index)>>ELETIGHT_BIT&1))  continue;
@@ -360,7 +360,7 @@ void WZEvent::DumpEvent(ostream& out, int verbosity)
            lIt != tightLeptons.end(); ++lIt) {
         out << fixed << setprecision(4)
             << ":" << (*lIt)->Pt() << ":" << (*lIt)->Eta() << ":" << (*lIt)->Phi()
-            << ":" << (*lIt)->GetRelIsoDeltaB();
+            << ":" << (*lIt)->GetRelIsoEffArea25ns();
         total3L += *(*lIt);
       }
 
@@ -393,11 +393,11 @@ void WZEvent::DumpEvent(ostream& out, int verbosity)
           << ":" << GetZLeptons().first->Pt()
           << ":" << GetZLeptons().first->Eta()
           << ":" << GetZLeptons().first->Phi()
-          << ":" << GetZLeptons().first->GetRelIsoDeltaB()
+          << ":" << GetZLeptons().first->GetRelIsoEffArea25ns()
           << ":" << GetZLeptons().second->Pt()
           << ":" << GetZLeptons().second->Eta()
           << ":" << GetZLeptons().second->Phi()
-          << ":" << GetZLeptons().second->GetRelIsoDeltaB();
+          << ":" << GetZLeptons().second->GetRelIsoEffArea25ns();
 
       for (vector<unsigned int>::const_iterator iIt = fTightLeptonsIndex.begin();
            iIt != fTightLeptonsIndex.end(); ++iIt) {
@@ -405,7 +405,7 @@ void WZEvent::DumpEvent(ostream& out, int verbosity)
           out << ":" << fLeptons.at(*iIt)->Pt()
               << ":" << fLeptons.at(*iIt)->Eta()
               << ":" << fLeptons.at(*iIt)->Phi()
-              << ":" << fLeptons.at(*iIt)->GetRelIsoDeltaB()
+              << ":" << fLeptons.at(*iIt)->GetRelIsoEffArea25ns()
               << ":" << GetZLeptons().first->DeltaR(*(GetZLeptons().second))
               << ":" << GetZLeptons().first->DeltaR(*(fLeptons.at(*iIt)))
               << ":" << GetZLeptons().second->DeltaR(*(fLeptons.at(*iIt)))
@@ -427,7 +427,7 @@ void WZEvent::DumpEvent(ostream& out, int verbosity)
             << ":" << fLeptons.at(*iIt)->Pt()
             << ":" << fLeptons.at(*iIt)->Eta()
             << ":" << fLeptons.at(*iIt)->Phi()
-            << ":" << fLeptons.at(*iIt)->GetRelIsoDeltaB();
+            << ":" << fLeptons.at(*iIt)->GetRelIsoEffArea25ns();
       }
     }
     out << fixed << setprecision(4)
