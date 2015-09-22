@@ -40,8 +40,6 @@ wzAnalysis: wzAnalysis.o WZEvent.o EventTree_ggNtuplizer_V07_04_05_04.o EventTre
 
 wzSelection: EventTree_ggNtuplizer_V07_04_05_04.o EventTree_ggNtuplizer_V07_04_09_01.o Leptons.o WZEvent.o GenericAnalysis.o WZJetStudy.o WZSelectionYields.o wzSelection.o
 
-makeStack: makeStack.o
-
 
 clean:
 	- $(RM) *.o *.Dict.cc *.Dict.h $(addsuffix .o, $(EXES)) Dependencies.make $(EXES) *.P
