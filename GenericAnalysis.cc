@@ -44,11 +44,17 @@ void GenericAnalysis::EventAnalysis()
 
 GenericAnalysis::~GenericAnalysis()
 {
+  std::cout << "Closing file: writing to ROOT.... \n";
+
   if (outputRootFile) {
     outputRootFile->cd();
+
+    std::cout << "# objects to write : " << fListOfHistos.size() << std::endl;
     for (unsigned int i = 0; i < fListOfHistos.size(); i++) {
       if (typeid(*(fListOfHistos.at(i))) == typeid(TH2D))  fListOfHistos.at(i)->Draw();
       else if (typeid(*(fListOfHistos.at(i))) == typeid(TH1D))  fListOfHistos.at(i)->Draw();
+
+      std::cout << "Writing object : " << fListOfHistos.at(i)->GetName() << std::endl;
       fListOfHistos.at(i)->Write();
     }
   }

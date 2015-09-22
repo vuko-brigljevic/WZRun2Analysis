@@ -23,12 +23,13 @@ int main(int argc, char **argv)
 
   bool gotInput  = false;
   bool gotOutput = false;
+  int  maxEvents = -1;
 //  bool gotHistoBinning = false;
 //  bool gotSystematicsConfig = false;
 //  char * systConfigFile(0);
   char c;
 
-  while ((c = getopt (argc, argv, "i:o:l:")) != -1)
+  while ((c = getopt (argc, argv, "i:o:l:M:")) != -1)
     switch (c)
       {
       case 'o':
@@ -46,12 +47,17 @@ int main(int argc, char **argv)
 	fileList = new char[strlen(optarg)+1];
 	strcpy(fileList,optarg);
 	break;
+      case 'M':
+	maxEvents = atoi(optarg);
+	break;
       default:
 	cout << "usage: [-k|-g|-l] [-v] [-b <binWidth>]   -i <input> -o <output> \n";
 	abort ();
       }
 
   // OUTPUT ROOT FILE
+
+  std::cout << "Max events to process : " << maxEvents << std::endl;
 
   TFile * fout;
   if (gotOutput) {
@@ -113,7 +119,7 @@ int main(int argc, char **argv)
   // 
   int nevents=0;
 
-  for  (Int_t k = 0; k<events ;k++) {
+  for  (Int_t k = 0; k<events && (maxEvents<0 || k<maxEvents) ;k++) {
   //  for  (Int_t k = 0; k<events; k++) {
 
     nevents++;
@@ -135,6 +141,7 @@ int main(int argc, char **argv)
 
 
   myAnalysis->Finish();
+  delete myAnalysis;
 
   fout->cd();
   hMet->Write();

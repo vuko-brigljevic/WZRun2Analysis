@@ -48,6 +48,7 @@ WZEvent::WZEvent(TTree* tree) :
 {
 // Set static pointer to Lepton class
   Lepton::SetWZEvent(this);
+  Particle::SetWZEvent(this);
 }
 
 
@@ -68,6 +69,19 @@ void WZEvent::Clear()
   fTightLeptonsIndex.clear();
   fZLeptonsIndex = make_pair(999, 999);
   fWLeptonIndex = 999;
+
+  fGenWLepton         = NULL;
+  fGenZLeptons        = make_pair( (GenParticle*) NULL, (GenParticle*) NULL);
+  fGenWDecayFlavor    = 0;
+  fGenZDecayFlavor    = 0;
+
+  // Empty Gen Particles
+
+  for (vector<GenParticle*>::iterator gIt = fGenParticles.begin(); gIt != fGenParticles.end(); ) {
+    delete *gIt;  
+    gIt = fGenParticles.erase(gIt);
+  }
+
 }
 
 
@@ -136,6 +150,164 @@ void WZEvent::ReadEvent()
                         muPhi->at(indexMu), muCharge->at(indexMu), relIsoDeltaB, 0.0, 0.0);
     fLeptons.push_back(mu);
   }
+
+  if (!isData) {
+    ReadGenEvent();
+  }
+
+
+}
+
+
+
+
+void WZEvent::ReadGenEvent() {
+
+  // Gen Particles
+  for (unsigned int indexGen = 0; indexGen < mcPID->size(); indexGen++) {
+
+    GenParticle * gp = new GenParticle(indexGen,
+				       mcPt->at(indexGen),
+				       mcEta->at(indexGen),
+				       mcPhi->at(indexGen));
+    fGenParticles.push_back(gp);
+
+  }
+
+  GetGenWZFinalState();
+
+}
+
+void WZEvent::GetGenWZFinalState() {
+
+
+
+  // Find out W and Z decay channels
+
+  int trueWDecayMode = -1;
+  int trueZDecayMode = -1;
+
+  for (int igen=0; igen<fGenParticles.size(); igen++) {
+    GenParticle * gp = fGenParticles.at(igen);
+    int pdgId = gp->PdgId();
+    if (abs(pdgId) == 11 || abs(pdgId) == 13 || abs(pdgId) == 15) {
+      if (mcMomPID->at(igen) == 23) {
+	trueZDecayMode = abs(pdgId);
+      }
+      if (abs(mcMomPID->at(igen)) == 24) {
+	trueWDecayMode = abs(pdgId);
+      }
+    } else if (abs(pdgId) == 12 || abs(pdgId) == 14 || abs(pdgId) == 16) {
+      // Look also at neutrinos for W
+      if (abs(mcMomPID->at(igen)) == 24) {
+	trueWDecayMode = abs(pdgId)-1;
+      }
+    }
+  }
+
+  fGenWDecayFlavor = trueWDecayMode;
+  fGenZDecayFlavor = trueZDecayMode;
+
+  // Now look for the 3 leptons if it's eee,eemu,mumue,mumumu
+
+  if (abs(trueZDecayMode) != 11 && abs(trueZDecayMode) != 13) return;
+  if (abs(trueWDecayMode) != 11 && abs(trueWDecayMode) != 13) return;
+
+
+  std::vector<GenParticle * > stablePromptLeptons;
+
+  std::vector<GenParticle *> trueWLeptons;
+  std::vector<GenParticle *> trueZLeptons;
+
+  for (int igen=0; igen<fGenParticles.size(); igen++) {
+    GenParticle * gp = fGenParticles.at(igen);
+    int pdgId = gp->PdgId();
+    if (abs(pdgId) == 11 || abs(pdgId) == 13) {
+      int index = gp->GetIndex();
+      if (mcStatus->at(index) == 1) {
+	stablePromptLeptons.push_back(gp);
+      }
+
+      int momId     =  mcMomPID->at(index);
+      int granMomId =  mcGMomPID->at(index);
+
+      if (abs(momId) == 23 || abs(granMomId) == 23) {
+	trueZLeptons.push_back(gp);
+      }
+      if (abs(momId) == 24 || abs(granMomId) == 24) {
+	trueWLeptons.push_back(gp);	
+      }
+    }
+  }
+
+  std::cout << "Stable Leptons " << stablePromptLeptons.size() << std::endl;
+
+  if (stablePromptLeptons.size() != 3) return;
+
+  if (trueWLeptons.size() != 1 
+      || trueZLeptons.size() != 2) {
+
+    std::cout << "WEIRDODS NUMBERS OF W & Z LEPTONS: W " 
+	      << trueWLeptons.size()
+	      << "\t Z : " << trueZLeptons.size() << std::endl;
+  } else {
+    fGenWLepton  = trueWLeptons[0];
+    fGenZLeptons = make_pair(trueZLeptons[0],trueZLeptons[1]);
+
+  }
+
+
+}
+
+bool WZEvent::IsInGenXSPhaseSpace() {
+
+  if (  abs(GetGenWDecayFlavor()) != 11 && abs(GetGenWDecayFlavor()) != 13) return false;
+
+  if (  abs(GetGenZDecayFlavor()) != 11 && abs(GetGenZDecayFlavor()) != 13) return false;
+
+  if (  !fGenZLeptons.first ||  !fGenZLeptons.second ) return false;
+
+
+  std::cout << "Is in XS phase space: z lepton pointers : " 
+	    <<  fGenZLeptons.first << "\t" <<  fGenZLeptons.second << std::endl;
+
+  TLorentzVector zp4 = *fGenZLeptons.first + *fGenZLeptons.second;
+
+  double zmass = zp4.M();
+
+  if (zmass>MZ_MIN && zmass<MZ_MAX) {
+    return true;
+  } else {
+    return false;
+  }
+
+}
+
+
+bool WZEvent::IsInGenFiducialPhaseSpace() {
+
+  // MZ cut
+  bool passed = IsInGenXSPhaseSpace();
+  
+  if (!passed) return false;
+
+  // All 3 leptons: |eta|<2.5
+  if ( abs(fGenZLeptons.first->Eta())>2.5 ||  abs(fGenZLeptons.second->Eta())>2.5 || 
+       abs(fGenWLepton->Eta())>2.5 ) 
+    passed = false;
+
+  // All 3 leptons: Pt>10
+  if ( abs(fGenZLeptons.first->Pt())<10 ||  abs(fGenZLeptons.second->Pt())<10. || 
+       abs(fGenWLepton->Pt())<10)
+    passed = false;
+
+  // At least one out of 3: Pt>20
+  if ( abs(fGenZLeptons.first->Pt())<20 &&  abs(fGenZLeptons.second->Pt())<20. &&
+       abs(fGenWLepton->Pt())<20)
+    passed = false;
+
+  return passed;
+
 }
 
 
@@ -440,4 +612,34 @@ void WZEvent::DumpEvent(ostream& out, int verbosity)
   }
 
   out << endl;
+}
+
+
+
+
+void WZEvent::DumpGenEvent(ostream& out) 
+{
+
+  out << "MC Tree : process ID = " << processID << std::endl;
+  out << "===============\n";
+  for (int igen = 0; igen<nMC; igen++) {
+    //    char  pyName[20];
+    //    TPythia::Pyname((mcPID)->at(igen),pyName);
+
+    unsigned short statusFlag = (mcStatusFlag)->at(igen);
+    unsigned short isPrompt = (statusFlag>>1 & 1);
+
+    out << "Gen Particle: " << (mcPID)->at(igen)
+	<< "\t status   : " << (mcStatus)->at(igen)
+	<< "\t mother ID: " << (mcMomPID)->at(igen)
+	<< "\t GrandMa  ID: " << (mcGMomPID)->at(igen)
+	<< "\t from hard process: " << (statusFlag & 1)
+	<< "\t Is Prompt: " << isPrompt
+	 << "\t Pt = " << (mcPt)->at(igen)
+	<< "\t Eta = " << (mcEta)->at(igen)
+	<< endl;
+  }
+
+
+
 }

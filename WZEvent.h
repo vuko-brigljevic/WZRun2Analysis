@@ -4,6 +4,7 @@
 #define WZBASECLASS EventTree_ggNtuplizer_V07_04_09_01
 
 #include "EventTree_ggNtuplizer_V07_04_09_01.h"
+#include "Particles.h"
 #include "Leptons.h"
 
 #include "TH1F.h"
@@ -64,14 +65,26 @@ public:
 
   void DumpEvent(std::ostream& out, int verbosity=0);
 
+  void DumpGenEvent(std::ostream& out);
+
   static TH1F* hScaleInEB;
   static TH1F* hScaleOutEB;
   static TH1F* hScaleEE;
 
+  int  GetGenWDecayFlavor() {return fGenWDecayFlavor;}
+  int  GetGenZDecayFlavor()  {return fGenZDecayFlavor;}
+  bool IsInGenXSPhaseSpace();
+  bool IsInGenFiducialPhaseSpace();
+
+  void GetGenWZFinalState();
 
 protected:
 
   void Clear();
+
+  // Read Gen info (called from within ReadEvent, therefore protected)
+  void ReadGenEvent();
+
 
   // For various smearing functions
   TRandom3* fRandom;
@@ -105,6 +118,17 @@ protected:
   vector<unsigned int> fTightLeptonsIndex;
   pair<unsigned int, unsigned int> fZLeptonsIndex;
   unsigned int fWLeptonIndex;
+
+  GenParticle *  fGenWLepton;
+  pair<GenParticle *, GenParticle*> fGenZLeptons;
+  int           fGenWDecayFlavor;
+  int           fGenZDecayFlavor;
+
+
+public:
+
+  vector<GenParticle*> fGenParticles;
+  vector<GenParticle*> fGenDressedLeptons;
 
 };
 
