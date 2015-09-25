@@ -4,10 +4,6 @@
 #include "TLorentzVector.h"
 
 
-
-
-
-
 class WZEvent;
 
 
@@ -23,9 +19,6 @@ public:
   static void SetWZEvent(WZEvent* wzt);
 
 
-  
-
-
 protected:
 
   int fIndex;
@@ -34,14 +27,16 @@ protected:
 
 };
 
+
 class GenParticle : public Particle
 {
 
 public:
 
-  GenParticle (unsigned int index, double pt, double eta, double phi);
+  GenParticle(unsigned int index, double pt, double eta, double phi);
 
   int PdgId() { return fPdgId;}
+
 
 protected:
 
@@ -55,17 +50,18 @@ class GenDressedLepton : public TLorentzVector
 
 public:
 
-  GenDressedLepton(GenParticle * originalLepton, TLorentzVector p4);
-  GenDressedLepton(GenParticle * originalLepton, WZEvent * evt);
+  GenDressedLepton(GenParticle* originalLepton, TLorentzVector p4);
+  GenDressedLepton(GenParticle* originalLepton, WZEvent* evt);
 
-  GenParticle * GetOriginalLepton();
+  GenParticle* GetOriginalLepton();
+
 
 protected:
 
-  GenParticle * fUndressedLepton;
+  GenParticle* fUndressedLepton;
 
 };
 
 
-
 #endif
+

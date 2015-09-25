@@ -19,19 +19,15 @@ void Particle::SetWZEvent(WZEvent* wzt)
 Particle::Particle(unsigned int index, double pt, double eta, double phi)
 {
   SetPtEtaPhiM(pt, eta, phi, 0.);
-  fIndex    = index;
+  fIndex = index;
 }
 
 
 GenParticle::GenParticle(unsigned int index, double pt, double eta, double phi)
   : Particle(index, pt, eta, phi)
 {
-
-  if (fWZTree == 0) {
-    cout << "WZEvent pointer is ZERO!!!! \n";
-  }
+  if (fWZTree == 0)  cout << "WZEvent pointer is ZERO!!!! \n";
 
   fPdgId = fWZTree->mcPID->at(fIndex);
-
 }
 

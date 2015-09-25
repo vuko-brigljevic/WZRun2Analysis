@@ -21,7 +21,7 @@ using namespace std;
 
 int
 MakeStack(TFile* f_WZ, TFile* f_ZZ4L, TFile* f_ZZ2L2Q, TFile* f_WW, TFile* f_DYM50,
-          TFile* f_TT, TFile* f_DYM10, TString histKey, unsigned int channel,
+          TFile* f_TT,/* TFile* f_DYM10,*/ TString histKey, unsigned int channel,
           TString xAxisTitle = "", double binWidth = 1.)
 {
   TH1D* h_WZ = (TH1D*) (f_WZ->Get(histKey))->Clone(histKey + "_WZ");
@@ -29,7 +29,7 @@ MakeStack(TFile* f_WZ, TFile* f_ZZ4L, TFile* f_ZZ2L2Q, TFile* f_WW, TFile* f_DYM
   TH1D* h_ZZ2L2Q = (TH1D*) (f_ZZ2L2Q->Get(histKey))->Clone(histKey + "_ZZ2L2Q");
   TH1D* h_WW = (TH1D*) (f_WW->Get(histKey))->Clone(histKey + "_WW");
   TH1D* h_DYM50 = (TH1D*) (f_DYM50->Get(histKey))->Clone(histKey + "_DYM50");
-  TH1D* h_DYM10 = (TH1D*) (f_DYM10->Get(histKey))->Clone(histKey + "_DYM10");
+//  TH1D* h_DYM10 = (TH1D*) (f_DYM10->Get(histKey))->Clone(histKey + "_DYM10");
   TH1D* h_TT = (TH1D*) (f_TT->Get(histKey))->Clone(histKey + "_TT");
 
   const double scale_WZ = EXPCMS_LUMINOSITY / (NG_WZTo3LNu / XS_WZTo3LNu);
@@ -37,7 +37,7 @@ MakeStack(TFile* f_WZ, TFile* f_ZZ4L, TFile* f_ZZ2L2Q, TFile* f_WW, TFile* f_DYM
   const double scale_ZZ2L2Q = EXPCMS_LUMINOSITY /  (NG_ZZTo2L2Q / XS_ZZTo2L2Q);
   const double scale_WW = EXPCMS_LUMINOSITY /  (NG_WWTo2L2Nu / XS_WWTo2L2Nu);
   const double scale_DYM50 = EXPCMS_LUMINOSITY /  (NG_DYJetsToLL_M50 / XS_DYJetsToLL_M50);
-  const double scale_DYM10 = EXPCMS_LUMINOSITY /  (NG_DYJetsToLL_M10to50 / XS_DYJetsToLL_M10to50);
+//  const double scale_DYM10 = EXPCMS_LUMINOSITY /  (NG_DYJetsToLL_M10to50 / XS_DYJetsToLL_M10to50);
   const double scale_TT = EXPCMS_LUMINOSITY /  (NG_TTJets / XS_TTJets);
 
   h_WZ->Scale(scale_WZ);
@@ -45,7 +45,7 @@ MakeStack(TFile* f_WZ, TFile* f_ZZ4L, TFile* f_ZZ2L2Q, TFile* f_WW, TFile* f_DYM
   h_ZZ2L2Q->Scale(scale_ZZ2L2Q);
   h_WW->Scale(scale_WW);
   h_DYM50->Scale(scale_DYM50);
-  h_DYM10->Scale(scale_DYM10);
+//  h_DYM10->Scale(scale_DYM10);
   h_TT->Scale(scale_TT);
 
   THStack* stack = new THStack(histKey, histKey);
@@ -54,7 +54,7 @@ MakeStack(TFile* f_WZ, TFile* f_ZZ4L, TFile* f_ZZ2L2Q, TFile* f_WW, TFile* f_DYM
   stack->Add(h_TT);    
   stack->Add(h_ZZ4L);
   stack->Add(h_DYM50);
-  stack->Add(h_DYM10);
+//  stack->Add(h_DYM10);
   stack->Add(h_WZ);   
 
   h_WZ->SetFillColor(kOrange-2);
@@ -62,7 +62,7 @@ MakeStack(TFile* f_WZ, TFile* f_ZZ4L, TFile* f_ZZ2L2Q, TFile* f_WW, TFile* f_DYM
   h_ZZ2L2Q->SetFillColor(kRed+2);
   h_WW->SetFillColor(kGreen);
   h_DYM50->SetFillColor(kGray+1);
-  h_DYM10->SetFillColor(kGray);
+//  h_DYM10->SetFillColor(kGray);
   h_TT->SetFillColor(kAzure);
 
   stack->SetMinimum(0.0);
@@ -70,7 +70,9 @@ MakeStack(TFile* f_WZ, TFile* f_ZZ4L, TFile* f_ZZ2L2Q, TFile* f_WW, TFile* f_DYM
 
  	stack->Draw();
   stack->GetXaxis()->SetTitle(xAxisTitle);
-  if (binWidth > 0.)  stack->GetYaxis()->SetTitle(Form("Events / %1.1f GeV", binWidth));
+  if (binWidth > 0.1)  stack->GetYaxis()->SetTitle(Form("Events / %1.1f GeV", binWidth));
+  else if (binWidth > 0. && binWidth <= 0.1)
+    stack->GetYaxis()->SetTitle(Form("Events / %1.2f", binWidth));
   else  stack->GetYaxis()->SetTitle("Events");
 
   stack->GetXaxis()->SetLabelFont(132);
@@ -101,7 +103,7 @@ MakeStack(TFile* f_WZ, TFile* f_ZZ4L, TFile* f_ZZ2L2Q, TFile* f_WW, TFile* f_DYM
   leg->AddEntry(h_TT, "TTJets", "f");
   leg->AddEntry(h_ZZ2L2Q, "ZZ #rightarrow 2l2q", "f");
   leg->AddEntry(h_WW, "WW", "f");
-  leg->AddEntry(h_DYM10, "Z + jets (low mass)", "f");
+//  leg->AddEntry(h_DYM10, "Z + jets (low mass)", "f");
 
 	leg->Draw();
 
@@ -124,14 +126,14 @@ MakeStack(TFile* f_WZ, TFile* f_ZZ4L, TFile* f_ZZ2L2Q, TFile* f_WW, TFile* f_DYM
 
 int
 MakeStackDeltaR(TFile* f_WZ, TFile* f_ZZ4L, TFile* f_ZZ2L2Q, TFile* f_WW, TFile* f_DYM50,
-                TFile* f_TT, TFile* f_DYM10, TString histKey, TString xAxisTitle, double max)
+                TFile* f_TT,/* TFile* f_DYM10,*/ TString histKey, TString xAxisTitle, double max)
 {
   TH1D* h_WZ = (TH1D*) (f_WZ->Get(histKey))->Clone(histKey + "_WZ");
   TH1D* h_ZZ4L = (TH1D*) (f_ZZ4L->Get(histKey))->Clone(histKey + "_ZZ4L");
   TH1D* h_ZZ2L2Q = (TH1D*) (f_ZZ2L2Q->Get(histKey))->Clone(histKey + "_ZZ2L2Q");
   TH1D* h_WW = (TH1D*) (f_WW->Get(histKey))->Clone(histKey + "_WW");
   TH1D* h_DYM50 = (TH1D*) (f_DYM50->Get(histKey))->Clone(histKey + "_DYM50");
-  TH1D* h_DYM10 = (TH1D*) (f_DYM10->Get(histKey))->Clone(histKey + "_DYM10");
+//  TH1D* h_DYM10 = (TH1D*) (f_DYM10->Get(histKey))->Clone(histKey + "_DYM10");
   TH1D* h_TT = (TH1D*) (f_TT->Get(histKey))->Clone(histKey + "_TT");
 
   const double scale_WZ = EXPCMS_LUMINOSITY / (NG_WZTo3LNu / XS_WZTo3LNu);
@@ -139,7 +141,7 @@ MakeStackDeltaR(TFile* f_WZ, TFile* f_ZZ4L, TFile* f_ZZ2L2Q, TFile* f_WW, TFile*
   const double scale_ZZ2L2Q = EXPCMS_LUMINOSITY /  (NG_ZZTo2L2Q / XS_ZZTo2L2Q);
   const double scale_WW = EXPCMS_LUMINOSITY /  (NG_WWTo2L2Nu / XS_WWTo2L2Nu);
   const double scale_DYM50 = EXPCMS_LUMINOSITY /  (NG_DYJetsToLL_M50 / XS_DYJetsToLL_M50);
-  const double scale_DYM10 = EXPCMS_LUMINOSITY /  (NG_DYJetsToLL_M10to50 / XS_DYJetsToLL_M10to50);
+//  const double scale_DYM10 = EXPCMS_LUMINOSITY /  (NG_DYJetsToLL_M10to50 / XS_DYJetsToLL_M10to50);
   const double scale_TT = EXPCMS_LUMINOSITY /  (NG_TTJets / XS_TTJets);
 
   h_WZ->Scale(scale_WZ);
@@ -147,7 +149,7 @@ MakeStackDeltaR(TFile* f_WZ, TFile* f_ZZ4L, TFile* f_ZZ2L2Q, TFile* f_WW, TFile*
   h_ZZ2L2Q->Scale(scale_ZZ2L2Q);
   h_WW->Scale(scale_WW);
   h_DYM50->Scale(scale_DYM50);
-  h_DYM10->Scale(scale_DYM10);
+//  h_DYM10->Scale(scale_DYM10);
   h_TT->Scale(scale_TT);
 
   THStack* stack = new THStack(histKey, histKey);
@@ -156,7 +158,7 @@ MakeStackDeltaR(TFile* f_WZ, TFile* f_ZZ4L, TFile* f_ZZ2L2Q, TFile* f_WW, TFile*
   stack->Add(h_TT);    
   stack->Add(h_ZZ4L);
   stack->Add(h_DYM50);
-  stack->Add(h_DYM10);
+//  stack->Add(h_DYM10);
   stack->Add(h_WZ);   
 
   h_WZ->SetFillColor(kOrange-2);
@@ -164,7 +166,7 @@ MakeStackDeltaR(TFile* f_WZ, TFile* f_ZZ4L, TFile* f_ZZ2L2Q, TFile* f_WW, TFile*
   h_ZZ2L2Q->SetFillColor(kRed+2);
   h_WW->SetFillColor(kGreen);
   h_DYM50->SetFillColor(kGray+1);
-  h_DYM10->SetFillColor(kGray);
+//  h_DYM10->SetFillColor(kGray);
   h_TT->SetFillColor(kAzure);
 
   stack->SetMinimum(0.0);
@@ -202,9 +204,9 @@ MakeStackDeltaR(TFile* f_WZ, TFile* f_ZZ4L, TFile* f_ZZ2L2Q, TFile* f_WW, TFile*
   leg->AddEntry(h_TT, "TTJets", "f");
   leg->AddEntry(h_ZZ2L2Q, "ZZ #rightarrow 2l2q", "f");
   leg->AddEntry(h_WW, "WW", "f");
-  leg->AddEntry(h_DYM10, "Z + jets (low mass)", "f");
+//  leg->AddEntry(h_DYM10, "Z + jets (low mass)", "f");
 
-	leg->Draw();
+  leg->Draw();
 
   TLatex latexLabel;
   latexLabel.SetNDC();
@@ -218,15 +220,15 @@ MakeStackDeltaR(TFile* f_WZ, TFile* f_ZZ4L, TFile* f_ZZ2L2Q, TFile* f_WW, TFile*
 
 pair<double, double>
 SignalAboveCutBin(TFile* f_WZ, TFile* f_ZZ4L, TFile* f_ZZ2L2Q, TFile* f_WW, TFile* f_DYM50,
-                  TFile* f_TT, TFile* f_DYM10, TString histKey, TFile* f_Signal, double scaleSignal,
-                  unsigned int cutBin)
+                  TFile* f_TT,/* TFile* f_DYM10,*/ TString histKey, TFile* f_Signal,
+                  double scaleSignal, unsigned int cutBin)
 {
   TH1D* h_WZ = (TH1D*) (f_WZ->Get(histKey))->Clone(histKey + "_WZ");
   TH1D* h_ZZ4L = (TH1D*) (f_ZZ4L->Get(histKey))->Clone(histKey + "_ZZ4L");
   TH1D* h_ZZ2L2Q = (TH1D*) (f_ZZ2L2Q->Get(histKey))->Clone(histKey + "_ZZ2L2Q");
   TH1D* h_WW = (TH1D*) (f_WW->Get(histKey))->Clone(histKey + "_WW");
   TH1D* h_DYM50 = (TH1D*) (f_DYM50->Get(histKey))->Clone(histKey + "_DYM50");
-  TH1D* h_DYM10 = (TH1D*) (f_DYM10->Get(histKey))->Clone(histKey + "_DYM10");
+//  TH1D* h_DYM10 = (TH1D*) (f_DYM10->Get(histKey))->Clone(histKey + "_DYM10");
   TH1D* h_TT = (TH1D*) (f_TT->Get(histKey))->Clone(histKey + "_TT");
 
   const double scale_WZ = EXPCMS_LUMINOSITY / (NG_WZTo3LNu / XS_WZTo3LNu);
@@ -234,7 +236,7 @@ SignalAboveCutBin(TFile* f_WZ, TFile* f_ZZ4L, TFile* f_ZZ2L2Q, TFile* f_WW, TFil
   const double scale_ZZ2L2Q = EXPCMS_LUMINOSITY /  (NG_ZZTo2L2Q / XS_ZZTo2L2Q);
   const double scale_WW = EXPCMS_LUMINOSITY /  (NG_WWTo2L2Nu / XS_WWTo2L2Nu);
   const double scale_DYM50 = EXPCMS_LUMINOSITY /  (NG_DYJetsToLL_M50 / XS_DYJetsToLL_M50);
-  const double scale_DYM10 = EXPCMS_LUMINOSITY /  (NG_DYJetsToLL_M10to50 / XS_DYJetsToLL_M10to50);
+//  const double scale_DYM10 = EXPCMS_LUMINOSITY /  (NG_DYJetsToLL_M10to50 / XS_DYJetsToLL_M10to50);
   const double scale_TT = EXPCMS_LUMINOSITY /  (NG_TTJets / XS_TTJets);
 
   h_WZ->Scale(scale_WZ);
@@ -242,7 +244,7 @@ SignalAboveCutBin(TFile* f_WZ, TFile* f_ZZ4L, TFile* f_ZZ2L2Q, TFile* f_WW, TFil
   h_ZZ2L2Q->Scale(scale_ZZ2L2Q);
   h_WW->Scale(scale_WW);
   h_DYM50->Scale(scale_DYM50);
-  h_DYM10->Scale(scale_DYM10);
+//  h_DYM10->Scale(scale_DYM10);
   h_TT->Scale(scale_TT);
 
   TH1D* h_All = (TH1D*) h_WZ->Clone("h_All");
@@ -251,7 +253,7 @@ SignalAboveCutBin(TFile* f_WZ, TFile* f_ZZ4L, TFile* f_ZZ2L2Q, TFile* f_WW, TFil
   h_All->Add(h_TT);    
   h_All->Add(h_ZZ4L);
   h_All->Add(h_DYM50);
-  h_All->Add(h_DYM10);
+//  h_All->Add(h_DYM10);
 
   TH1D* h_Signal = (TH1D*) (f_Signal->Get(histKey))->Clone("h_Signal");
   h_Signal->Scale(scaleSignal);
@@ -275,14 +277,14 @@ SignalAboveCutBin(TFile* f_WZ, TFile* f_ZZ4L, TFile* f_ZZ2L2Q, TFile* f_WW, TFil
 
 pair<double, double>
 TotalSignalAboveCutBin(TFile* f_WZ, TFile* f_ZZ4L, TFile* f_ZZ2L2Q, TFile* f_WW, TFile* f_DYM50,
-                       TFile* f_TT, TFile* f_DYM10, TString histKey, unsigned int cutBin)
+                       TFile* f_TT,/* TFile* f_DYM10,*/ TString histKey, unsigned int cutBin)
 {
   TH1D* h_WZ = (TH1D*) (f_WZ->Get(histKey))->Clone(histKey + "_WZ");
   TH1D* h_ZZ4L = (TH1D*) (f_ZZ4L->Get(histKey))->Clone(histKey + "_ZZ4L");
   TH1D* h_ZZ2L2Q = (TH1D*) (f_ZZ2L2Q->Get(histKey))->Clone(histKey + "_ZZ2L2Q");
   TH1D* h_WW = (TH1D*) (f_WW->Get(histKey))->Clone(histKey + "_WW");
   TH1D* h_DYM50 = (TH1D*) (f_DYM50->Get(histKey))->Clone(histKey + "_DYM50");
-  TH1D* h_DYM10 = (TH1D*) (f_DYM10->Get(histKey))->Clone(histKey + "_DYM10");
+//  TH1D* h_DYM10 = (TH1D*) (f_DYM10->Get(histKey))->Clone(histKey + "_DYM10");
   TH1D* h_TT = (TH1D*) (f_TT->Get(histKey))->Clone(histKey + "_TT");
 
   const double scale_WZ = EXPCMS_LUMINOSITY / (NG_WZTo3LNu / XS_WZTo3LNu);
@@ -290,7 +292,7 @@ TotalSignalAboveCutBin(TFile* f_WZ, TFile* f_ZZ4L, TFile* f_ZZ2L2Q, TFile* f_WW,
   const double scale_ZZ2L2Q = EXPCMS_LUMINOSITY /  (NG_ZZTo2L2Q / XS_ZZTo2L2Q);
   const double scale_WW = EXPCMS_LUMINOSITY /  (NG_WWTo2L2Nu / XS_WWTo2L2Nu);
   const double scale_DYM50 = EXPCMS_LUMINOSITY /  (NG_DYJetsToLL_M50 / XS_DYJetsToLL_M50);
-  const double scale_DYM10 = EXPCMS_LUMINOSITY /  (NG_DYJetsToLL_M10to50 / XS_DYJetsToLL_M10to50);
+//  const double scale_DYM10 = EXPCMS_LUMINOSITY /  (NG_DYJetsToLL_M10to50 / XS_DYJetsToLL_M10to50);
   const double scale_TT = EXPCMS_LUMINOSITY /  (NG_TTJets / XS_TTJets);
 
   h_WZ->Scale(scale_WZ);
@@ -298,7 +300,7 @@ TotalSignalAboveCutBin(TFile* f_WZ, TFile* f_ZZ4L, TFile* f_ZZ2L2Q, TFile* f_WW,
   h_ZZ2L2Q->Scale(scale_ZZ2L2Q);
   h_WW->Scale(scale_WW);
   h_DYM50->Scale(scale_DYM50);
-  h_DYM10->Scale(scale_DYM10);
+//  h_DYM10->Scale(scale_DYM10);
   h_TT->Scale(scale_TT);
 
   TH1D* h_All = (TH1D*) h_WZ->Clone("h_All");
@@ -307,7 +309,7 @@ TotalSignalAboveCutBin(TFile* f_WZ, TFile* f_ZZ4L, TFile* f_ZZ2L2Q, TFile* f_WW,
   h_All->Add(h_TT);    
   h_All->Add(h_ZZ4L);
   h_All->Add(h_DYM50);
-  h_All->Add(h_DYM10);
+//  h_All->Add(h_DYM10);
 
   double signal = h_All->Integral(cutBin, 300);
   double total = h_All->Integral(0, 300);
@@ -326,7 +328,7 @@ TotalSignalAboveCutBin(TFile* f_WZ, TFile* f_ZZ4L, TFile* f_ZZ2L2Q, TFile* f_WW,
 
 int
 MakeSignificanceGraphs(TFile* f_WZ, TFile* f_ZZ4L, TFile* f_ZZ2L2Q, TFile* f_WW, TFile* f_DYM50,
-                       TFile* f_TT, TFile* f_DYM10, TString histKey, unsigned int channel,
+                       TFile* f_TT,/* TFile* f_DYM10,*/ TString histKey, unsigned int channel,
                        TCanvas* canvas, TString xAxisTitle, double start, double end, double binWidth)
 {
   const double scale_WZ = EXPCMS_LUMINOSITY / (NG_WZTo3LNu / XS_WZTo3LNu);
@@ -343,39 +345,40 @@ MakeSignificanceGraphs(TFile* f_WZ, TFile* f_ZZ4L, TFile* f_ZZ2L2Q, TFile* f_WW,
     const double xValue = start + i * binWidth;
     xValues.push_back(xValue);
     const double signalFraction_WZ =
-      SignalAboveCutBin(f_WZ, f_ZZ4L, f_ZZ2L2Q, f_WW, f_DYM50, f_TT, f_DYM10,
+      SignalAboveCutBin(f_WZ, f_ZZ4L, f_ZZ2L2Q, f_WW, f_DYM50, f_TT,/* f_DYM10,*/
             		        histKey, f_WZ, scale_WZ, i).first;
     signalFractions_WZ.push_back(signalFraction_WZ);
     const double significance_WZ =
-      SignalAboveCutBin(f_WZ, f_ZZ4L, f_ZZ2L2Q, f_WW, f_DYM50, f_TT, f_DYM10,
+      SignalAboveCutBin(f_WZ, f_ZZ4L, f_ZZ2L2Q, f_WW, f_DYM50, f_TT,/* f_DYM10,*/
             		        histKey, f_WZ, scale_WZ, i).second;
     significances_WZ.push_back(significance_WZ);
     const double signalFraction_DYM50 =
-      SignalAboveCutBin(f_WZ, f_ZZ4L, f_ZZ2L2Q, f_WW, f_DYM50, f_TT, f_DYM10,
+      SignalAboveCutBin(f_WZ, f_ZZ4L, f_ZZ2L2Q, f_WW, f_DYM50, f_TT,/* f_DYM10,*/
             		        histKey, f_DYM50, scale_DYM50, i).first;
     signalFractions_DYM50.push_back(signalFraction_DYM50);
     const double significance_DYM50 =
-      SignalAboveCutBin(f_WZ, f_ZZ4L, f_ZZ2L2Q, f_WW, f_DYM50, f_TT, f_DYM10,
+      SignalAboveCutBin(f_WZ, f_ZZ4L, f_ZZ2L2Q, f_WW, f_DYM50, f_TT,/* f_DYM10,*/
             		        histKey, f_DYM50, scale_DYM50, i).second;
     significances_DYM50.push_back(significance_DYM50);
     const double signalFraction_ZZ4L =
-      SignalAboveCutBin(f_WZ, f_ZZ4L, f_ZZ2L2Q, f_WW, f_DYM50, f_TT, f_DYM10,
+      SignalAboveCutBin(f_WZ, f_ZZ4L, f_ZZ2L2Q, f_WW, f_DYM50, f_TT,/* f_DYM10,*/
             		        histKey, f_ZZ4L, scale_ZZ4L, i).first;
     signalFractions_ZZ4L.push_back(signalFraction_ZZ4L);
     const double significance_ZZ4L =
-      SignalAboveCutBin(f_WZ, f_ZZ4L, f_ZZ2L2Q, f_WW, f_DYM50, f_TT, f_DYM10,
+      SignalAboveCutBin(f_WZ, f_ZZ4L, f_ZZ2L2Q, f_WW, f_DYM50, f_TT,/* f_DYM10,*/
             		        histKey, f_ZZ4L, scale_ZZ4L, i).second;
     significances_ZZ4L.push_back(significance_ZZ4L);
     const double signalFraction_TT =
-      SignalAboveCutBin(f_WZ, f_ZZ4L, f_ZZ2L2Q, f_WW, f_DYM50, f_TT, f_DYM10,
+      SignalAboveCutBin(f_WZ, f_ZZ4L, f_ZZ2L2Q, f_WW, f_DYM50, f_TT,/* f_DYM10,*/
             		        histKey, f_TT, scale_TT, i).first;
     signalFractions_TT.push_back(signalFraction_TT);
     const double significance_TT =
-      SignalAboveCutBin(f_WZ, f_ZZ4L, f_ZZ2L2Q, f_WW, f_DYM50, f_TT, f_DYM10,
+      SignalAboveCutBin(f_WZ, f_ZZ4L, f_ZZ2L2Q, f_WW, f_DYM50, f_TT,/* f_DYM10,*/
             		        histKey, f_TT, scale_TT, i).second;
     significances_TT.push_back(significance_TT);
     const double signalFraction_Total =
-      TotalSignalAboveCutBin(f_WZ, f_ZZ4L, f_ZZ2L2Q, f_WW, f_DYM50, f_TT, f_DYM10, histKey, i).second;
+      TotalSignalAboveCutBin(f_WZ, f_ZZ4L, f_ZZ2L2Q, f_WW, f_DYM50, f_TT,/* f_DYM10,*/
+                             histKey, i).second;
     totalSignalFractions.push_back(signalFraction_Total);
   }
 
@@ -551,24 +554,25 @@ main()
 {
   const MyStyle rootStyle(600);
 
-  TFile* f_WZ   = TFile::Open("/users/msasa/work/cms/wz/ggAna/code/WZRun2Analysis/output/selection/DYStudy/withoutWlptCut/FullSelection/WZ_eleMedium.root");
-  TFile* f_ZZ4L   = TFile::Open("/users/msasa/work/cms/wz/ggAna/code/WZRun2Analysis/output/selection/DYStudy/withoutWlptCut/FullSelection/ZZ4L_eleMedium.root");
-  TFile* f_ZZ2L2Q   = TFile::Open("/users/msasa/work/cms/wz/ggAna/code/WZRun2Analysis/output/selection/DYStudy/withoutWlptCut/FullSelection/ZZ2L2Q_eleMedium.root");
-  TFile* f_WW   = TFile::Open("/users/msasa/work/cms/wz/ggAna/code/WZRun2Analysis/output/selection/DYStudy/withoutWlptCut/FullSelection/WW_eleMedium.root");
-  TFile* f_DYM50   = TFile::Open("/users/msasa/work/cms/wz/ggAna/code/WZRun2Analysis/output/selection/DYStudy/withoutWlptCut/FullSelection/DYM50_eleMedium.root");
-  TFile* f_TT   = TFile::Open("/users/msasa/work/cms/wz/ggAna/code/WZRun2Analysis/output/selection/DYStudy/withoutWlptCut/FullSelection/TT_eleMedium.root");
-  TFile* f_DYM10   = TFile::Open("/users/msasa/work/cms/wz/ggAna/code/WZRun2Analysis/output/selection/DYStudy/withoutWlptCut/FullSelection/DYM10to50_eleMedium.root");
+  TFile* f_WZ   = TFile::Open("/users/msasa/work/cms/wz/ggAna/code/WZRun2Analysis/output/selection/FullSelection_WithoutDeltaRCut/WZ_eleMedium.root");
+  TFile* f_ZZ4L   = TFile::Open("/users/msasa/work/cms/wz/ggAna/code/WZRun2Analysis/output/selection/FullSelection_WithoutDeltaRCut/ZZ4L_eleMedium.root");
+  TFile* f_ZZ2L2Q   = TFile::Open("/users/msasa/work/cms/wz/ggAna/code/WZRun2Analysis/output/selection/FullSelection_WithoutDeltaRCut/ZZ2L2Q_eleMedium.root");
+  TFile* f_WW   = TFile::Open("/users/msasa/work/cms/wz/ggAna/code/WZRun2Analysis/output/selection/FullSelection_WithoutDeltaRCut/WW_eleMedium.root");
+  TFile* f_DYM50   = TFile::Open("/users/msasa/work/cms/wz/ggAna/code/WZRun2Analysis/output/selection/FullSelection_WithoutDeltaRCut/DYM50_eleMedium.root");
+  TFile* f_TT   = TFile::Open("/users/msasa/work/cms/wz/ggAna/code/WZRun2Analysis/output/selection/FullSelection_WithoutDeltaRCut/TT_eleMedium.root");
+//  TFile* f_DYM10   = TFile::Open("/users/msasa/work/cms/wz/ggAna/code/WZRun2Analysis/output/selection/FullSelection_WithoutDeltaRCut/DYM10_eleMedium.root");
 
   unsigned int n = 5;
 
-  vector<string> histoName = { "Zmass", "Zpt", "MET", "Mt", "3LMass", "Zl1pt", "Zl2pt", "Wlpt" };
+  vector<string> histoName = { "Zmass", "Zpt", "MET", "Mt", "3LMass", "Zl1pt", "Zl2pt", "Wlpt", "DeltaR", "DeltaRMin" };
   vector<string> jetsName = { "NJets", "NJetsNoMuIso", "NJetsNoEleIso", "NJetsNoIso" };
-  const string path = "/users/msasa/work/cms/wz/ggAna/code/WZRun2Analysis/output/selection/DYStudy/withoutWlptCut/FullSelection/plots/stack/";
+  const string path = "/users/msasa/work/cms/wz/ggAna/code/WZRun2Analysis/output/selection/FullSelection_WithoutDeltaRCut/plots/stack/";
   vector<string> xAxisHisto =
     { "M_{Z} [GeV]", "Z p_{t} [GeV]","missing E_{t} [GeV]", "M_{t} [GeV]", "M_{3l} [GeV]",
-      "Zl_{lead} p_{t} [GeV]", "Zl_{trail} p_{t} [GeV]", "Wl p_{t} [GeV]" };
+      "Zl_{lead} p_{t} [GeV]", "Zl_{trail} p_{t} [GeV]", "Wl p_{t} [GeV]",
+      "#DeltaR (Wl, Zl)", "(#DeltaR)_{min} (Wl, Zl)" };
   const string xAxisJets = "Number of Jets";
-  vector<double> binWidthHisto = { 1.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0 };
+  vector<double> binWidthHisto = { 1.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 0.05, 0.05 };
 
   for (unsigned int histo = 0; histo < histoName.size(); histo++) {
     TCanvas* canvas[n];
@@ -576,7 +580,7 @@ main()
       canvas[i] = new TCanvas((histoName.at(histo) + "_" + boost::lexical_cast<string>(i)).c_str(),
                               histoName.at(histo).c_str());
       canvas[i]->cd();
-      MakeStack(f_WZ, f_ZZ4L, f_ZZ2L2Q, f_WW, f_DYM50, f_TT, f_DYM10,
+      MakeStack(f_WZ, f_ZZ4L, f_ZZ2L2Q, f_WW, f_DYM50, f_TT,/* f_DYM10,*/
                 ("h" + histoName.at(histo) + "_" + boost::lexical_cast<string>(i)).c_str(),
                 i, xAxisHisto.at(histo).c_str(), binWidthHisto.at(histo));
       canvas[i]->SaveAs((path + histoName.at(histo) + "_" +
@@ -591,7 +595,7 @@ main()
       canvas[i] = new TCanvas((jetsName.at(jets) + "_" + boost::lexical_cast<string>(i)).c_str(),
                               jetsName.at(jets).c_str());
       canvas[i]->cd();
-      MakeStack(f_WZ, f_ZZ4L, f_ZZ2L2Q, f_WW, f_DYM50, f_TT, f_DYM10,
+      MakeStack(f_WZ, f_ZZ4L, f_ZZ2L2Q, f_WW, f_DYM50, f_TT,/* f_DYM10,*/
                 ("h" + jetsName.at(jets) + "_" + boost::lexical_cast<string>(i)).c_str(),
                 i, xAxisJets.c_str(), 0.);
       canvas[i]->SaveAs((path + jetsName.at(jets) + "_" +
@@ -616,19 +620,20 @@ main()
   }
 */
 
-  const string pathGraph = "/users/msasa/work/cms/wz/ggAna/code/WZRun2Analysis/output/selection/DYStudy/withoutWlptCut/FullSelection/plots/cuts/";
-  vector<string> graphName = { "3LMass", "MET", "Wlpt" };
-  vector<string> xAxisGraph = { "M_{3l} [GeV]", "missing E_{t} [GeV]", "W lepton p_{t} [GeV] " };
-  vector<double> startGraph = { 50., 0., 0. };
-  vector<double> endGraph = { 350., 200., 200. };
-  vector<double> binWidthGraph = { 2., 2., 2. };
+  const string pathGraph = "/users/msasa/work/cms/wz/ggAna/code/WZRun2Analysis/output/selection/FullSelection_WithoutDeltaRCut/plots/cuts/";
+  vector<string> graphName = { "3LMass", "MET", "Wlpt", "DeltaR", "DeltaRMin" };
+  vector<string> xAxisGraph = { "M_{3l} [GeV]", "missing E_{t} [GeV]", "W lepton p_{t} [GeV]",
+                                "#DeltaR (Wl, Zl)", "(#DeltaR)_{min} (Wl, Zl)" };
+  vector<double> startGraph = { 50., 0., 0., 0., 0. };
+  vector<double> endGraph = { 350., 200., 200., 5., 5. };
+  vector<double> binWidthGraph = { 2., 2., 2., 0.05, 0.05 };
   for (unsigned int graph = 0; graph < graphName.size(); graph++) {
     TCanvas* canvas[n];
     for (unsigned int i = 0; i < n; i++) {
       canvas[i] = new TCanvas((graphName.at(graph) + "_" + boost::lexical_cast<string>(i)).c_str(),
                               graphName.at(graph).c_str());
       canvas[i]->cd();
-      MakeSignificanceGraphs(f_WZ, f_ZZ4L, f_ZZ2L2Q, f_WW, f_DYM50, f_TT, f_DYM10,
+      MakeSignificanceGraphs(f_WZ, f_ZZ4L, f_ZZ2L2Q, f_WW, f_DYM50, f_TT,/* f_DYM10,*/
                              ("h" + graphName.at(graph) + "_" + boost::lexical_cast<string>(i)).c_str(),
                              i, canvas[i], xAxisGraph.at(graph).c_str(),
                              startGraph.at(graph), endGraph.at(graph), binWidthGraph.at(graph));

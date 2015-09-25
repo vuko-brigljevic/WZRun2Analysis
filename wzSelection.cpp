@@ -1,5 +1,3 @@
-#define DEBUG  false
-
 #include "WZSelectionYields.h"
 #include "WZJetStudy.h"
 #include "MyStyle.h"
@@ -42,14 +40,12 @@ int main(int argc, char **argv)
         abort ();
     }
 
-  // OUTPUT ROOT FILE
-
+// OUTPUT ROOT FILE
   TFile* fout;
   if (gotOutput)  fout = new TFile(outputFileName, "RECREATE");
-  else            fout = new TFile("default_test.root", "RECREATE");
+  else            fout = new TFile("/users/msasa/work/cms/wz/ggAna/code/WZRun2Analysis/output/default.root", "RECREATE");
 
-  // INPUT TREES
-
+// INPUT TREES
   vector<TString> inputName;
   TChain wz("ggNtuplizer/EventTree");
 
@@ -78,37 +74,32 @@ int main(int argc, char **argv)
   WZSelectionYields* yields = new WZSelectionYields(cWZ, fout);
   yields->Init();
 
-  WZJetStudy* jets = new WZJetStudy(cWZ, fout);
-  jets->Init();
+//  WZJetStudy* jets = new WZJetStudy(cWZ, fout);
+//  jets->Init();
 
-  // Event loop
- 
+// Event loop
   unsigned int nEvents = 0;
 
   for  (Int_t k = 0; k < events /*&& k < 200000*/; k++) {
     cerr <<  "  " << int(100 * 100 * (k+1.) / events + 0.5) / 100. << " %            \r" << flush;
     nEvents++;
-
-//    if ( !(k % 100000) )  cout << "Processed " << k << " events \n";
-
     wz_tTree->GetEntry(k);
     cWZ->ReadEvent();
 
     yields->EventAnalysis();
-    jets->EventAnalysis();
+//    jets->EventAnalysis();
   }
   cerr << "  100%" << endl << endl;
 
   cout << "Events : " << nEvents << "\n"
-       << "Analyzed = " << jets->GetNAnalyzed() << "\n"
-       << "Selected events (jets && tight leptons) = " << jets->GetNSelected() << "\n"
-       << "Total number of Good Jets: " << jets->GetNGoodJets() << endl << endl;
+       << "Analyzed = " << yields->GetNAnalyzed() << "\n"
+       << "Selected events = " << yields->GetNSelected() << "\n\n";
 
   yields->Finish();
   delete yields;
   
-  jets->Finish();
-  delete jets;
+//  jets->Finish();
+//  delete jets;
 
   fout->Close();
 }

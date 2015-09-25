@@ -31,8 +31,7 @@ enum SelectionLevel
   Preselection,         // 2
   ZSelection,           // 3
   WSelection,           // 4
-  FullSelection,        // 5
-  FinalSelection        // 6
+  FullSelection         // 5
 };
 
 
@@ -47,13 +46,11 @@ public:
   WZEvent(TTree* tree);
 
   vector<bool> GetHLT25ns() { return fHLT25ns; }
-  vector<bool> GetHLT50ns() { return fHLT50ns; }
 
   bool PassesPreselection();
   bool PassesZSelection();
   bool PassesWSelection();
   bool PassesFullSelection();
-  bool PassesFinalSelection();
 
   FinalState GetFinalState() { return fFinalState; }
   SelectionLevel GetSelectionLevel() { return fSelectionLevel; }
@@ -99,17 +96,6 @@ protected:
 // 6 - HLT_Mu8_DiEle12_CaloIdL_TrackIdL_v2                  - bit 43
 // 7 - HLT_DiMu9_Ele9_CaloIdL_TrackIdL_v2                   - bit 44
 // 8 - HLT_TripleMu_12_10_5_v2                              - bit 28
-
-  vector<bool> fHLT50ns;
-// 0 - HLT_Ele17_Ele12_CaloIdL_TrackIdL_IsoVL_DZ_v2         - bit 16
-// 1 - HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ_v2               - bit 10
-// 2 - HLT_Mu17_TrkIsoVVL_TkMu8_TrkIsoVVL_DZ_v2             - bit 11
-// 3 - HLT_Mu8_TrkIsoVVL_Ele17_CaloIdL_TrackIdL_IsoVL_v2    - bit 36
-// 4 - HLT_Mu17_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL_v2   - bit 37
-// 5 - HLT_Ele16_Ele12_Ele8_CaloIdL_TrackIdL_v2             - bit 17
-// 6 - HLT_Mu8_DiEle12_CaloIdL_TrackIdL_v2                  - bit 38
-// 7 - HLT_DiMu9_Ele9_CaloIdL_TrackIdL_v2                   - bit 39
-// 8 - HLT_TripleMu_12_10_5_v2                              - bit 35
 
   FinalState fFinalState;
   SelectionLevel fSelectionLevel;
